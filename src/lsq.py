@@ -69,7 +69,7 @@ class ML_LSQ_Projector:
 
         return int(np.ceil(L))
     
-    def get_tuning_params(self, L: int, scale: float=.0) -> tuple[np.array, np.array, np.array]:
+    def get_tuning_params(self, L: int, scale: float=1e-2) -> tuple[np.array, np.array, np.array]:
         """
         Returns the tuning parameters for the multilevel algorithm,
         given problem-dependent constants for specific assumptions.
@@ -87,7 +87,8 @@ class ML_LSQ_Projector:
         mk = np.array(list(map(int, np.ceil(mk))))
         nl = np.array(list(map(int, np.ceil(nl))))
         
-        kappa = (1 - np.log(2)) / (1 + L) / 2
+        r = 1
+        kappa = (1 - np.log(2)) / (1 + r) / 2
         aux = (1 + scale) * mk ** sigma
         grid_N = np.arange(2, 1_000_000)
         Ns = []
