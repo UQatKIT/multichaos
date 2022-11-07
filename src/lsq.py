@@ -137,7 +137,7 @@ class ML_LSQ_Projector:
         return func
     
     def l2_error(self, sample, values):
-        err = np.sqrt(((self.projection()(sample) - values) ** 2).sum() / sample.shape[0])
+        err = np.sqrt(((self.projection(grid=True)(sample) - values) ** 2).mean())
         return err
 
     def lsq_projection(self, I: IndexSet, N: int, f: Callable, sample: Optional[np.array]=None) -> np.array:
