@@ -1,4 +1,5 @@
 matplotlib
 notebook
 numpy
+pytest
 tqdm
