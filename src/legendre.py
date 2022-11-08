@@ -39,7 +39,7 @@ def get_total_degree_index_set(m: int, d: int=2) -> IndexSet:
     """
     # TODO: Extend to dimension `d > 2`.
     if d == 1:
-        return list(range(m + 1))
+        return list(range(m))
     I = []
     for i in range(m + 1):
         for j in range(m - i, -1, -1):
