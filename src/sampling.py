@@ -11,7 +11,8 @@ IndexSet = list[Union[int, tuple[int, ...]]]
 
 
 def arcsine(x: np.array) -> np.array:
-    return 1 / np.sqrt(x * (1 - x)) / np.pi
+    aux = 1 / np.sqrt(x * (1 - x)) / np.pi
+    return aux.prod(axis=1) if len(x.shape) > 1 else aux
 
 def sample_arcsine(size: tuple[int, ...]) -> np.array:
     u = np.random.uniform(-np.pi/2, np.pi/2, size=size)
