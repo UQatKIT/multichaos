@@ -28,6 +28,7 @@ def leggridnd(x: list[np.array], c: np.array) -> np.array:
     Evaluate a multivariate Legendre polynomial at the cartesian grid
     given by the 1-D arrays in `x`.
     """
+    assert isinstance(x, list), "x should be a list of 1-D arrays"
     for i, x_ in enumerate(x):
         x[i] = 2 * x_ - 1  # transform [0, 1] -> [-1, 1]
     return _gridnd(legval, c, *x)
