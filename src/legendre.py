@@ -7,6 +7,8 @@ from numpy.polynomial.legendre import legval
 from numpy.polynomial.polyutils import _gridnd
 from typing import Union
 
+from sampling import transform
+
 
 IndexSet = list[Union[int, tuple[int, ...]]]
 
@@ -15,7 +17,7 @@ def legvalnd(x: np.array, c: np.array) -> np.array:
     """
     Evaluate a multivariate Legendre polynomial at N-D points `x`.
     """
-    x = 2 * x - 1  # transform [0, 1] -> [-1, 1]
+    x = transform(x)
     if len(x.shape) > 1:
         for i in range(x.shape[-1]):
             c = legval(x[:, i], c) if i == 0 else legval(x[:, i], c, tensor=False)
@@ -30,7 +32,7 @@ def leggridnd(x: list[np.array], c: np.array) -> np.array:
     """
     assert isinstance(x, list), "x should be a list of 1-D arrays"
     for i, x_ in enumerate(x):
-        x[i] = 2 * x_ - 1  # transform [0, 1] -> [-1, 1]
+        x[i] = transform(x_)
     return _gridnd(legval, c, *x)
 
 def get_total_degree_index_set(m: int, d: int=2) -> IndexSet:

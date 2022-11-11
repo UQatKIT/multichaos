@@ -9,6 +9,9 @@ from typing import Union
 
 IndexSet = list[Union[int, tuple[int, ...]]]
 
+def transform(x):
+    """Transforms [0, 1] -> [-1, 1]."""
+    return 2 * x - 1
 
 def arcsine(x: np.array) -> np.array:
     aux = 1 / np.sqrt(x * (1 - x)) / np.pi
@@ -29,8 +32,8 @@ def rejection_sampling(n: int, size: int) -> np.array:
 
     while len(samples) < size:
         arcs = sample_arcsine(size_factor * size)
-        c = n * [0] + [1] 
-        aux = legval(2 * arcs - 1, c) ** 2 / 4 / np.e / arcsine(arcs)
+        c = n * [0] + [1]
+        aux = legval(transform(arcs), c) ** 2 / 4 / np.e / arcsine(arcs)
         U = np.random.uniform(size=size_factor * size)
         samples.extend(arcs[U <= aux])
 
