@@ -5,8 +5,7 @@ import numpy as np
 
 from numpy.polynomial.legendre import legval
 from numpy.polynomial.polyutils import _gridnd
-from scipy.special import binom
-from typing import Callable, Union
+from typing import Union
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
@@ -71,21 +70,3 @@ def optimal_weight(I: IndexSet, x: np.array) -> np.array:
     Returns the optimal weight function defined by `I` evaluated in `x`.
     """
     return len(I) / sum(legvalnd(x, eta) ** 2 for eta in I)
-
-def coef_to_func(v: np.array, d: int=2, grid: bool=False) -> Callable:
-    """
-    Returns the polynomial given by the coefficients `v` w.r.t the
-    total degree basis of the corresponding order.
-    """
-    m = 0
-    while binom(m + d, m) != len(v):
-        m += 1
-
-    I = get_total_degree_index_set(m, d=d)
-    I = index_set_transformation(I)
-
-    if grid:
-        func = lambda x: sum(v[i] * leggridnd(d * [x], eta) for i, eta in enumerate(I))
-    else:
-        func = lambda x: sum(v[i] * legvalnd(x, eta) for i, eta in enumerate(I))
-    return func
