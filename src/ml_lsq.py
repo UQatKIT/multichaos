@@ -174,6 +174,8 @@ class ML_LSQ:
         e_total = time.perf_counter()
         print_end(e_total - s_total)
 
+        return self
+
     def l2_error(self, sample: list[np.array], values: np.array) -> float:
         """
         Calculates the L2 error on a grid given by the

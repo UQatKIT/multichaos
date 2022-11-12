@@ -79,6 +79,8 @@ class LSQ:
         self.coef_ = np.linalg.solve(G, c)
         self.cond_ = np.linalg.cond(G)
 
+        return self
+
     def l2_error(self, sample: list[np.array], values: np.array) -> float:
         """
         Calculates the L2 error on a grid given by the
