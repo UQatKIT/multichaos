@@ -82,7 +82,7 @@ def get_tuning_params(L: int, params: dict, scale: float=1e-2) -> tuple[np.array
     aux = (1 + scale) * mk ** sigma
     # TODO: Use bounds on the number of samples to generate an adaptive grid.
     grid = np.arange(2, 10_000_000)
-    idxs = np.argmin(np.abs((grid / np.log(grid) - aux.reshape(-1, 1) / kappa)), axis=1)
+    idxs = np.argmax((grid / np.log(grid) - aux.reshape(-1, 1) / kappa) >=0, axis=1)
     Ns = grid[idxs]
 
     Ns = np.array(Ns)

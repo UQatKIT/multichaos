@@ -21,7 +21,7 @@ def get_optimal_sample_size(I: IndexSet, r: float=1.) -> int:
     """
     kappa = (1 - np.log(2)) / (1 + r) / 2
     grid = np.arange(2, 1_000_000)
-    ix = np.argmin(np.abs(grid / np.log(grid) - len(I) / kappa))
+    ix = np.argmax((grid / np.log(grid) - len(I) / kappa) >=0)
     return grid[ix]
 
 def assemble_linear_system(I: IndexSet, sample: np.array, f: Callable) -> tuple[np.array, np.array]:
