@@ -102,9 +102,9 @@ def theoretical_total_work(L: int, Ns: np.array, params: dict) -> float:
 
     return work
 
-def print_start(eps: float, L: int, mk: np.array, nl: np.array, Ns: np.array, reduce: float) -> list[int]:
+def print_start(eps: float, L: int, mk: np.array, nl: np.array, Ns: np.array, reduce: float, reuse_sample: bool) -> list[int]:
     w = [max(map(len, map(str, arr))) for arr in [mk, nl, Ns]]
-    print(f"eps = {eps:.2e}, L = {L}, reduce = {reduce}%")
+    print(f"eps = {eps:.2e}, L = {L}, reduce = {reduce}%, reuse_sample = {reuse_sample}")
     print(f"{'Level':>5} | {'m':>{w[0]}} | {'n':>{w[1]}} | {'N':>{w[2]}} | {'time':>7}")
     print("-" * (24 + sum(w)))
     return w
@@ -132,7 +132,7 @@ class ML_LSQ:
             else:
                 return sum(p(x) for p in projectors)
 
-    def solve(self, f: Callable, eps: float, reduce_sample_by: float=0.) -> np.array:
+    def solve(self, f: Callable, eps: float, reduce_sample_by: float=0., reuse_sample: bool=False) -> np.array:
         """
         Returns the coefficients `v` w.r.t the total degree basis on each level `l = 0, ..., L`.
         """
@@ -143,10 +143,11 @@ class ML_LSQ:
 
         Ns = np.ceil((1 - reduce_sample_by) * Ns).astype(int)
 
-        w = print_start(eps, L, mk, nl, Ns, reduce_sample_by)
+        w = print_start(eps, L, mk, nl, Ns, reduce_sample_by, reuse_sample)
 
-        I = get_total_degree_index_set(mk[-1])
-        sample = sample_optimal_distribution(I, max(Ns))
+        if reuse_sample:
+            I = get_total_degree_index_set(min(mk))
+            sample = sample_optimal_distribution(I, max(Ns))
 
         self.projectors_ = []
         for l in range(L + 1):
@@ -154,17 +155,23 @@ class ML_LSQ:
 
             m = mk[L - l]
             I = get_total_degree_index_set(m)
-
             N = Ns[L - l]
-            sample_l = sample[:N]
-
             n = nl[l]
-            f_l = f(n)
-            f_l__ = f_l_[:N] if l > 0 else np.zeros(N)  # f_{-1} := 0
-            f_l_ = f_l(sample_l)
 
             level_l_projector = LSQ(I)
-            level_l_projector.solve(lambda _: f_l_ - f_l__, sample=sample_l)
+            if not reuse_sample:
+                f_l = f(n)
+                f_l_ = f(nl[l - 1]) if l > 0 else lambda _: 0  # f_{-1} := 0
+                f_ = lambda g: f_l(g) - f_l_(g)
+                level_l_projector.solve(f_, N=N)
+            else:
+                sample_l = sample[:N]
+                f_l = f(n)
+                f_l__ = f_l_[:N] if l > 0 else np.zeros(N)  # f_{-1} := 0
+                f_l_ = f_l(sample_l)
+                f_ = lambda _: f_l_ - f_l__
+                level_l_projector.solve(f_, sample=sample_l)
+
             self.projectors_.append(level_l_projector)
 
             e = time.perf_counter()
