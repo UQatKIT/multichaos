@@ -104,7 +104,7 @@ def theoretical_total_work(L: int, Ns: np.array, params: dict) -> float:
 
 def print_start(eps: float, L: int, mk: np.array, nl: np.array, Ns: np.array, reduce: float, reuse_sample: bool) -> list[int]:
     w = [max(map(len, map(str, arr))) for arr in [mk, nl, Ns]]
-    print(f"eps = {eps:.2e}, L = {L}, reduce = {reduce}%, reuse_sample = {reuse_sample}")
+    print(f"eps = {eps:.2e}, L = {L}, reduce = {100 * reduce}%, reuse_sample = {reuse_sample}")
     print(f"{'Level':>5} | {'m':>{w[0]}} | {'n':>{w[1]}} | {'N':>{w[2]}} | {'time':>7}")
     print("-" * (24 + sum(w)))
     return w
