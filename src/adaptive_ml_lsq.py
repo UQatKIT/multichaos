@@ -1,15 +1,20 @@
+from __future__ import annotations
 import numpy as np
 import time
 
 from itertools import product
-from typing import Callable
+from typing import Callable, Union
 
 from sampling import sample_arcsine
 from lsq import get_optimal_sample_size
 from lsq import LSQ
 
 
-def is_downward_closed(I) -> bool:
+IndexSet = list[Union[int, tuple[int, ...]]]
+
+
+def is_downward_closed(I: IndexSet) -> bool:
+    """Checks if the given index set `I` is downward closed."""
     I_set = set(I)
     for eta in I:
         for j, k in enumerate(eta):
@@ -20,7 +25,11 @@ def is_downward_closed(I) -> bool:
                     return False
     return True
 
-def get_neighbours(eta, extending=False):
+def get_neighbours(eta: tuple[int, ...], extending=False) -> IndexSet:
+    """
+    Returns the neighbours of `eta`, where a neighbour is defined
+    as a tuple that differs in exactly one entry by one.
+    """
     neighbours = []
     for i, k in enumerate(eta):
         eta_up, eta_down = list(eta), list(eta)
@@ -32,7 +41,11 @@ def get_neighbours(eta, extending=False):
                 neighbours.append(tuple(eta_down))
     return neighbours
 
-def admissible_multi_indices(I):
+def admissible_multi_indices(I: IndexSet) -> IndexSet:
+    """
+    Returns the admissible multi-indices of `I`,
+    the neighbours s.t. the index set is still downward closed.
+    """
     indices = []
     for eta in I:
         neighbours = get_neighbours(eta, extending=True)
@@ -45,35 +58,49 @@ def admissible_multi_indices(I):
                 indices.append(neighbour)
     return list(set(indices))
 
-def seperate_index(eta):
+def seperate_index(eta: tuple[int, ...]) -> tuple[tuple[int, ...], int]:
+    """Seperates an index `(k, l)` into `k` and `l`."""
     return eta[:-1], eta[-1]
 
-def get_power_of_two_index_set(eta):
+def get_power_of_two_index_set(eta: tuple[int, ...]) -> IndexSet:
+    """
+    Returns all multi-indices `k` s.t. the condition
+    `2 ^ k - 1 <= eta < 2 ^ (k+1) - 1` is fulfilled.
+    """
     low = tuple(2 ** k - 1 for k in eta)
     high = tuple(2 ** (k + 1) - 1 for k in eta)
     I = list(product(*[range(l, h) for (l, h) in zip(low, high)]))
     return I
 
-def slice_index_set(I, l):
+
+def slice_index_set(I: IndexSet, l: int) -> IndexSet:
+    """Returns all multi-indices `(k, s)` in `I` for which `s = l`."""
     return [eta for eta in I if seperate_index(eta)[1] == l]
 
-def estimate_work(f, d):
+def estimate_work(f: Callable, d: int) -> tuple[float, int]:
+    """Measures the computation time for 50 evaluations of `f`."""
     reps = 50
     x = np.random.rand(reps, d)
 
     s = time.perf_counter()
-    f(x)
+    _ = f(x)
     e = time.perf_counter()
 
     return e - s, reps
 
-def sum_times(times):
+def sum_times(times: dict[int, list[tuple[float, int]]]) -> dict[int, float]:
+    """
+    Calculates the mean of computation times given by
+    a list of tuples of times and number of samples.
+    """
     sums_ = {n: [sum(tup) for tup in zip(*t)] for n, t in times.items()}
     means_ = {n: t / n_elem for n, (t, n_elem) in sums_.items()}
     return means_
 
-
-def construct_multi_index_set(f: Callable, n_steps: int, d: int):
+def construct_multi_index_set(f: Callable, n_steps: int, d: int) -> IndexSet:
+    """
+    Constructs a problem-dependent, downward closed multi-index set `I` (see Haji-Ali et al.).
+    """
     I = [(0,) * (d + 1)]
 
     func_evals = {}
@@ -145,29 +172,50 @@ def construct_multi_index_set(f: Callable, n_steps: int, d: int):
 
     return I
 
-def adaptive_ml_algorithm(f, n_steps, d):
-    print("Constructing multi-index set ...")
-    I = construct_multi_index_set(f, n_steps, d)
+class AD_ML_LSQ:
+    def __init__(self):
+        self.I = None
 
-    print("Projecting ...")
-    L = max(eta[-1] for eta in I)
+    def __call__(self, x: np.array, grid: bool=False) -> np.array:
+        try:
+            projectors = self.projectors_
+        except:
+            raise ValueError("Model was not fitted yet.")
+        else:
+            if grid:
+                return sum(p(x, grid=True) for p in projectors)
+            else:
+                return sum(p(x) for p in projectors)
 
-    projectors = []
-    for l in range(L + 1):
-        V = []
-        for eta in slice_index_set(I, l):
-            k, _ = seperate_index(eta)
-            V.extend(get_power_of_two_index_set(k))
+    def solve(self, f: Callable, n_steps: int, d: int) -> AD_ML_LSQ:
+        if self.I is None:
+            self.I = construct_multi_index_set(f, n_steps, d)
 
-        N = get_optimal_sample_size(V, sampling="arcsine")
-        sample = sample[:N] if l > 0 else sample_arcsine((N, d))
+        L = max(eta[-1] for eta in self.I)
 
-        f_l = f(l)
-        f_l__ = f_l_[:N] if l > 0 else np.zeros(N)  # f_{-1} := 0
-        f_l_ = f_l(sample)
-        f_ = lambda _: f_l_ - f_l__
+        self.projectors_ = []
+        for l in range(L + 1):
+            V = []
+            for eta in slice_index_set(self.I, l):
+                k, _ = seperate_index(eta)
+                V.extend(get_power_of_two_index_set(k))
 
-        level_l_projector = LSQ(V, sampling="arcsine").solve(f_, sample=sample)
-        projectors.append(level_l_projector)
+            N = get_optimal_sample_size(V, sampling="arcsine")
+            sample = sample[:N] if l > 0 else sample_arcsine((N, d))
 
-    return projectors
+            f_l = f(l)
+            f_l__ = f_l_[:N] if l > 0 else np.zeros(N)  # f_{-1} := 0
+            f_l_ = f_l(sample)
+            f_ = lambda _: f_l_ - f_l__
+
+            level_l_projector = LSQ(V, sampling="arcsine").solve(f_, sample=sample)
+            self.projectors_.append(level_l_projector)
+
+        return self
+
+    def l2_error(self, sample: list[np.array], values: np.array) -> float:
+        """
+        Calculates the L2 error on a grid given by the
+        cartesian product of 1-D arrays in `sample`.
+        """
+        return np.sqrt(((self(sample, grid=True) - values) ** 2).mean())
