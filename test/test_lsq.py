@@ -4,7 +4,7 @@ import numpy as np
 
 from src.sampling import sample_optimal_distribution
 from src.legendre import get_total_degree_index_set
-from src.lsq import get_optimal_sample_size
+from src.lsq import get_optimal_sample_size, get_weights
 from src.lsq import assemble_linear_system
 from src.lsq import LSQ
 
@@ -19,9 +19,11 @@ def I(m):
 
 @pytest.fixture(scope="session")
 def G(I):
-    N = get_optimal_sample_size(I)
+    N = get_optimal_sample_size(I, sampling="optimal")
     sample = sample_optimal_distribution(I, size=N)
-    G, _ = assemble_linear_system(I, sample, lambda _: 1)
+    f = np.ones(len(sample))
+    weights = get_weights(I, sample, sampling="optimal")
+    G, _ = assemble_linear_system(I, sample, f, weights)
     return G
 
 @pytest.fixture(scope="session")
@@ -30,7 +32,7 @@ def x():
 
 def test_get_optimal_sample_size(I, m):
     r = 1
-    N = get_optimal_sample_size(I, r=r)
+    N = get_optimal_sample_size(I, sampling="optimal", r=r)
     kappa = (1 - np.log(2)) / (1 + r) / 2
     assert kappa * N / np.log(N) >= m
 
@@ -46,7 +48,7 @@ def test_system_matrix(G, I):
 def test_lsq_polynomial_fit(deg, x):
     I = get_total_degree_index_set(deg)
     f = lambda x: (x ** deg).sum(axis=1)
-    model = LSQ(I).solve(f)
+    model = LSQ(I, sampling="optimal").solve(f)
     x = np.random.rand(1000, 2)
     err = np.sqrt(((model(x) - f(x)) ** 2).mean())
 

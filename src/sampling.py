@@ -24,24 +24,22 @@ def sample_arcsine(size: tuple[int, ...]) -> np.array:
 def rejection_sampling(n: int, size: int) -> np.array:
     """
     Samples from the distribution with squared
-    univariate Lebesgue density `P_n^2` of degree `n`.
+    univariate Lebesgue density of degree `n`.
     """
-    # TODO: `size_factor` depending on `n` and `size` to balance the number of while loops
-    size_factor = 1    
     samples = []
 
     while len(samples) < size:
-        arcs = sample_arcsine(size_factor * size)
+        arcs = sample_arcsine(size)
         c = n * [0] + [1]
         aux = legval(transform(arcs), c) ** 2 / 4 / np.e / arcsine(arcs)
-        U = np.random.uniform(size=size_factor * size)
+        U = np.random.uniform(size=size)
         samples.extend(arcs[U <= aux])
 
     return np.array(samples[:size])
 
 def sample_optimal_distribution_uni(I: IndexSet, size: int) -> np.array:
     """
-    Samples from the optimal distribution `\rho_V^*` in the univariate case.
+    Samples from the optimal distribution in the univariate case.
     """
     choices = np.random.choice(I, size)
     count_choices = np.bincount(choices)
@@ -56,7 +54,7 @@ def sample_optimal_distribution_uni(I: IndexSet, size: int) -> np.array:
 
 def sample_optimal_distribution(I: IndexSet, size: int) -> np.array:
     """
-    Samples from the optimal distribution `\rho_V^*`.
+    Samples from the optimal distribution.
     """
     d = 1 if isinstance(I[0], int) else len(I[0])
     if d == 1:
