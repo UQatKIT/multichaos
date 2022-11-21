@@ -11,7 +11,6 @@ from src.legendre import leggridnd
 from src.legendre import get_total_degree_index_set
 from src.legendre import index_set_transformation
 from src.legendre import optimal_density
-from src.legendre import optimal_weight
 
 
 legendre_ = [
@@ -80,16 +79,6 @@ def test_optimal_density_integral_one():
     integral = np.trapz(res, x=x)
 
     assert np.isclose(integral, 1.)
-
-def test_optimal_density_inverse_weights():
-    m = 5
-    I = get_total_degree_index_set(m, d=1)
-    I = index_set_transformation(I)
-    x = np.linspace(0, 1, 10_000)
-    res = optimal_density(I, x)
-    expected = 1. / optimal_weight(I, x)
-
-    assert np.allclose(res, expected)
 
 @pytest.mark.parametrize("I", [[1, 2, 3], [(0, 0), (0, 1), (1, 0)]])
 def test_legendre_orthonormal(I):

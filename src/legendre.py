@@ -67,9 +67,3 @@ def optimal_density(I: IndexSet, x: np.array) -> np.array:
     Returns the optimal density function defined by `I` evaluated in `x`.
     """
     return sum(legvalnd(x, eta) ** 2 for eta in I) / len(I)
-
-def optimal_weight(I: IndexSet, x: np.array) -> np.array:
-    """
-    Returns the optimal weight function defined by `I` evaluated in `x`.
-    """
-    return len(I) / sum(legvalnd(x, eta) ** 2 for eta in I)
