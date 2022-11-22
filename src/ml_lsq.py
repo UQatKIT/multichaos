@@ -158,7 +158,7 @@ class ML_LSQ:
             N = Ns[L - l]
             n = nl[l]
 
-            level_l_projector = LSQ(I)
+            level_l_projector = LSQ(I, sampling="optimal")
             if not reuse_sample:
                 f_l = f(n)
                 f_l_ = f(nl[l - 1]) if l > 0 else lambda _: 0  # f_{-1} := 0
