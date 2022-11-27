@@ -4,6 +4,7 @@ Multilevel weighted polynomial least squares.
 import numpy as np
 import time
 
+from scipy.special import lambertw
 from typing import Callable, Union
 
 from sampling import sample_optimal_distribution
@@ -76,16 +77,12 @@ def get_tuning_params(L: int, params: dict, scale: float=1e-2) -> tuple[np.array
     zero_to_L = np.arange(L + 1)
     mk = M * np.exp(zero_to_L / (sigma + alpha))
     nl = np.exp(zero_to_L / (gamma + beta_s))
-    
+
     r = L
     kappa = (1 - np.log(2)) / (1 + r) / 2
     aux = (1 + scale) * mk ** sigma
-    # TODO: Use bounds on the number of samples to generate an adaptive grid.
-    grid = np.arange(2, 10_000_000)
-    idxs = np.argmax((grid / np.log(grid) - aux.reshape(-1, 1) / kappa) >=0, axis=1)
-    Ns = grid[idxs]
+    Ns = np.ceil(np.real(np.exp(-lambertw(-kappa / aux, k=-1))))
 
-    Ns = np.array(Ns)
     mk = np.ceil(mk).astype(int)
     nl = np.ceil(nl).astype(int)
 

@@ -3,6 +3,7 @@ Weighted polynomial least squares.
 """
 import numpy as np
 
+from scipy.special import lambertw
 from typing import Callable, Literal, Union
 
 from sampling import arcsine, sample_optimal_distribution, sample_arcsine
@@ -27,9 +28,9 @@ def get_optimal_sample_size(I: IndexSet, sampling: SamplingMode, r: float=1.) ->
         aux = C ** d * len(I)
 
     kappa = (1 - np.log(2)) / (1 + r) / 2
-    grid = np.arange(2, 1_000_000)
-    ix = np.argmax((grid / np.log(grid) - aux / kappa) >=0)
-    return grid[ix]
+    N = np.ceil(np.real(np.exp(-lambertw(- kappa / aux, k=-1)))).astype(int)
+
+    return N
 
 def get_sample(I: IndexSet, N: int, sampling: SamplingMode) -> np.array:
     if sampling == "optimal":
