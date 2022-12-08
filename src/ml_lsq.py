@@ -146,7 +146,7 @@ class ML_LSQ:
         w = print_start(eps, L, mk, nl, Ns, reduce_sample_by, reuse_sample)
 
         if reuse_sample:
-            I = get_total_degree_index_set(min(mk))
+            I = get_total_degree_index_set(max(mk))
             sample = sample_optimal_distribution(I, max(Ns))
 
         self.projectors_ = []
