@@ -101,16 +101,16 @@ def theoretical_total_work(L: int, Ns: np.array, params: dict) -> float:
 
 def print_start(eps: float, L: int, mk: np.array, nl: np.array, Ns: np.array, reduce: float, reuse_sample: bool) -> list[int]:
     w = [max(map(len, map(str, arr))) for arr in [mk, nl, Ns]]
-    print(f"eps = {eps:.2e}, L = {L}, reduce = {100 * reduce}%, reuse_sample = {reuse_sample}")
-    print(f"{'Level':>5} | {'m':>{w[0]}} | {'n':>{w[1]}} | {'N':>{w[2]}} | {'time':>7}")
-    print("-" * (24 + sum(w)))
+    verboseprint(f"eps = {eps:.2e}, L = {L}, reduce = {100 * reduce}%, reuse_sample = {reuse_sample}")
+    verboseprint(f"{'Level':>5} | {'m':>{w[0]}} | {'n':>{w[1]}} | {'N':>{w[2]}} | {'time':>7}")
+    verboseprint("-" * (24 + sum(w)))
     return w
 
 def print_level(l: int, m: int, n: int, N: int, time: float, w: list[int]):
-    print(f"{l:>5} | {m:>{w[0]}} | {n:>{w[1]}} | {N:>{w[2]}} | {time:>6.3f}s")
+    verboseprint(f"{l:>5} | {m:>{w[0]}} | {n:>{w[1]}} | {N:>{w[2]}} | {time:>6.3f}s")
 
 def print_end(time):
-    print(f"TOTAL TIME: {time:.3f}s\n")
+    verboseprint(f"TOTAL TIME: {time:.3f}s\n")
 
 
 class ML_LSQ:
@@ -129,10 +129,13 @@ class ML_LSQ:
             else:
                 return sum(p(x) for p in projectors)
 
-    def solve(self, f: Callable, eps: float, reduce_sample_by: float=0., reuse_sample: bool=False) -> np.array:
+    def solve(self, f: Callable, eps: float, reduce_sample_by: float=0., reuse_sample: bool=False, verbose: bool=True) -> np.array:
         """
         Returns the coefficients `v` w.r.t the total degree basis on each level `l = 0, ..., L`.
         """
+        global verboseprint
+        verboseprint = print if verbose else lambda *a, **k: None
+
         s_total = time.perf_counter()
 
         L = get_number_of_levels(eps, self.params_)
