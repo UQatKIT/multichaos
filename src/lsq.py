@@ -40,15 +40,7 @@ def get_sample(I: IndexSet, N: int, sampling: SamplingMode) -> np.array:
 
     return sample
 
-def get_weights(I: IndexSet, sample: np.array, sampling: SamplingMode) -> np.array:
-    if sampling == "optimal":
-        weights = 1. / optimal_density(I, sample)
-    elif sampling == "arcsine":
-        weights = 1. / arcsine(sample)
-
-    return weights
-
-def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array, weights: np.array) -> tuple[np.array, np.array]:
+def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[np.array, np.array]:
     """
     Assembles the linear system `Gv=c` for the weighted LSQ
     problem using Legendre polynomials.
@@ -56,6 +48,8 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array, weights: 
     basis_val = np.zeros((len(I), len(sample)))
     for i, eta in enumerate(I):
         basis_val[i] = legvalnd(sample, eta)
+
+    weights = len(I) / (basis_val ** 2).sum(axis=0)
 
     M = (np.sqrt(weights) * basis_val).T / np.sqrt(len(sample))
     G = np.dot(M.T, M)
@@ -96,9 +90,8 @@ class LSQ:
             if N is not None:
                 raise ValueError("Provide either a sample or a number of samples, not both.")
 
-        weights = get_weights(self.I_, sample, self.sampling)
         f = f(sample)
-        G, c = assemble_linear_system(self.I_, sample, f, weights)
+        G, c = assemble_linear_system(self.I_, sample, f)
 
         self.coef_ = np.linalg.solve(G, c)
         self.cond_ = np.linalg.cond(G)

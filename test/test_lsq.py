@@ -4,7 +4,7 @@ import numpy as np
 
 from src.sampling import sample_optimal_distribution
 from src.legendre import get_total_degree_index_set, index_set_transformation
-from src.lsq import get_optimal_sample_size, get_weights
+from src.lsq import get_optimal_sample_size
 from src.lsq import assemble_linear_system
 from src.lsq import LSQ
 
@@ -23,8 +23,7 @@ def G(I):
     sample = sample_optimal_distribution(I, size=N)
     f = np.ones(len(sample))
     I_ = index_set_transformation(I)
-    weights = get_weights(I_, sample, sampling="optimal")
-    G, _ = assemble_linear_system(I_, sample, f, weights)
+    G, _ = assemble_linear_system(I_, sample, f)
     return G
 
 @pytest.fixture(scope="session")
