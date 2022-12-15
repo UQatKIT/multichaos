@@ -6,8 +6,7 @@ import numpy as np
 from scipy.special import lambertw
 from typing import Callable, Literal, Union
 
-from sampling import arcsine, sample_optimal_distribution, sample_arcsine
-from legendre import index_set_transformation, optimal_density
+from sampling import sample_optimal_distribution, sample_arcsine
 from legendre import legvalnd, leggridnd
 
 
@@ -60,7 +59,6 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
 class LSQ:
     def __init__(self, I: IndexSet, sampling: SamplingMode) -> None:
         self.I = I
-        self.I_ = index_set_transformation(I)
         self.sampling = sampling
         assert sampling in ["optimal", "arcsine"], \
             ValueError(f"Unkwnown sampling mode '{sampling}'.")
@@ -72,9 +70,9 @@ class LSQ:
             raise ValueError("Model was not fitted yet.")
         else:
             if grid:
-                return sum(v * leggridnd([x, x], eta) for v, eta in zip(coef, self.I_))
+                return sum(v * leggridnd([x, x], eta) for v, eta in zip(coef, self.I))
             else:
-                return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I_))
+                return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I))
 
     def solve(self, f: Callable, N: int=None, sample: np.array=None):
         """
@@ -91,7 +89,7 @@ class LSQ:
                 raise ValueError("Provide either a sample or a number of samples, not both.")
 
         f = f(sample)
-        G, c = assemble_linear_system(self.I_, sample, f)
+        G, c = assemble_linear_system(self.I, sample, f)
 
         self.coef_ = np.linalg.solve(G, c)
         self.cond_ = np.linalg.cond(G)

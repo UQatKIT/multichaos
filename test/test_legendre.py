@@ -9,7 +9,6 @@ from src.sampling import transform
 from src.legendre import legvalnd
 from src.legendre import leggridnd
 from src.legendre import get_total_degree_index_set
-from src.legendre import index_set_transformation
 from src.legendre import optimal_density
 
 
@@ -20,27 +19,6 @@ legendre_ = [
     lambda x: 1/2 * (5 * x ** 3 - 3 * x),
 ]
 
-@pytest.mark.parametrize("dim", [2, 3, 4, 5])
-def test_leggvalnd(dim):
-    x = np.random.random((dim, 10))
-    y = polyval(transform(x), [1., 2., 3.])
-    c1d = np.array([2., 2., 2.])
-    c = np.einsum(*sum([(c1d, [i]) for i in range(dim)], ()))
-    vals = legvalnd(x.T, c).flatten()
-    expected = y.prod(axis=0)
-
-    assert np.allclose(vals, expected)
-
-@pytest.mark.parametrize("dim", [2, 3, 4, 5])
-def test_leggridnd(dim):
-    x = np.random.random((dim, 10))
-    y = polyval(transform(x), [1., 2., 3.])
-    c1d = np.array([2., 2., 2.])
-    c = np.einsum(*sum([(c1d, [i]) for i in range(dim)], ()))
-    vals = leggridnd([*x], c).flatten()
-    expected = np.einsum(*sum([(y_, [i]) for i, y_ in enumerate(y)], ())).flatten()
-
-    assert np.allclose(vals, expected)
 
 def test_get_total_degree_index_set():
     m = 2
@@ -65,7 +43,6 @@ def test_index_set_transformation():
             [legendre_[ix](transform(x[:, i])) for i, ix in enumerate(eta)]
         ).prod(0)
 
-    I = index_set_transformation(I)
     res = sum(legvalnd(x, eta) for eta in I)
 
     assert np.allclose(res, expected)
@@ -73,7 +50,6 @@ def test_index_set_transformation():
 def test_optimal_density_integral_one():
     m = 5
     I = get_total_degree_index_set(m, d=1)
-    I = index_set_transformation(I)
     x = np.linspace(0, 1, 10_000)
     res = optimal_density(I, x)
     integral = np.trapz(res, x=x)
@@ -90,7 +66,6 @@ def test_legendre_orthonormal(I):
         x = np.dstack(np.meshgrid(x_, x_)).reshape(-1, 2)
         dx = (x_[1] - x_[0]) ** 2
 
-    I = index_set_transformation(I)
     vals = np.array([legvalnd(x, eta) for eta in I])
     matrix = dx * (vals @ vals.T)
 

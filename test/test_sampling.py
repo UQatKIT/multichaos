@@ -3,7 +3,6 @@ import pytest
 import numpy as np
 
 from src.legendre import get_total_degree_index_set
-from src.legendre import index_set_transformation
 from src.legendre import optimal_density
 from src.sampling import sample_arcsine
 from src.sampling import sample_optimal_distribution
@@ -21,7 +20,7 @@ samples = [
 ]
 densities = [
     arcsine,
-    lambda x: optimal_density(index_set_transformation(I), x),
+    lambda x: optimal_density(I, x),
 ]
 
 @pytest.mark.parametrize("sample", samples)
