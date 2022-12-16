@@ -2,12 +2,9 @@ import pytest
 
 import numpy as np
 
-from numpy.polynomial.polynomial import polyval
 from scipy.special import binom
 
-from src.sampling import transform
 from src.legendre import legvalnd
-from src.legendre import leggridnd
 from src.legendre import get_total_degree_index_set
 from src.legendre import optimal_density
 
@@ -40,7 +37,7 @@ def test_index_set_transformation():
     expected = 0
     for eta in I:
         expected += np.sqrt(2 * np.array(eta) + 1).prod() * np.array(
-            [legendre_[ix](transform(x[:, i])) for i, ix in enumerate(eta)]
+            [legendre_[ix](2 * x[:, i] - 1) for i, ix in enumerate(eta)]
         ).prod(0)
 
     res = sum(legvalnd(x, eta) for eta in I)
