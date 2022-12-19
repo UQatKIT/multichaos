@@ -27,7 +27,7 @@ def rejection_sampling(n: int, size: int) -> np.array:
 
     while len(samples) < size:
         arcs = sample_arcsine(size)
-        aux = np.sqrt(2 * n + 1) * eval_sh_legendre(n, arcs) ** 2 / 4 / np.e / arcsine(arcs)
+        aux = (2 * n + 1) * eval_sh_legendre(n, arcs) ** 2 / 4 / np.e / arcsine(arcs)
         U = np.random.uniform(size=size)
         samples.extend(arcs[U <= aux])
 
