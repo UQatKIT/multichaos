@@ -103,7 +103,6 @@ class LSQ:
         G, c = assemble_linear_system(self.I, sample, f)
 
         self.coef_ = np.linalg.solve(G, c)
-        self.cond_ = np.linalg.cond(G)
 
         return self
 
