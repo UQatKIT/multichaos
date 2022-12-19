@@ -3,7 +3,7 @@ Weighted polynomial least squares.
 """
 import numpy as np
 
-from scipy.special import lambertw
+from scipy.special import lambertw, eval_sh_legendre
 from typing import Callable, Literal, Union
 
 from sampling import sample_optimal_distribution, sample_arcsine
@@ -44,14 +44,25 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
     Assembles the linear system `Gv=c` for the weighted LSQ
     problem using Legendre polynomials.
     """
+    I_ = np.unique(np.array(I))
+    basis_val_uni = np.zeros((len(I_), *sample.shape))
+    for i, k in enumerate(I_):
+        basis_val_uni[i] = eval_sh_legendre(k, sample)
+
     basis_val = np.zeros((len(I), len(sample)))
     for i, eta in enumerate(I):
-        basis_val[i] = legvalnd(sample, eta)
+        prod = 1.
+        for j, k in enumerate(eta):
+            prod *= basis_val_uni[k, :, j]
+        basis_val[i] = prod
+
+    norms = np.sqrt((2 * np.array(I) + 1).prod(axis=1))
+    basis_val *= norms.reshape(-1, 1)
 
     weights = len(I) / (basis_val ** 2).sum(axis=0)
 
-    M = (np.sqrt(weights) * basis_val).T / np.sqrt(len(sample))
-    G = np.dot(M.T, M)
+    M = basis_val * np.sqrt(weights)
+    G = np.dot(M, M.T) / len(sample)
     c = np.mean(weights * f * basis_val, axis=1)
 
     return G, c
