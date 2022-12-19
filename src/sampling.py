@@ -3,15 +3,12 @@ Sampling methods for the weighted polynomial least squares projection.
 """
 import numpy as np
 
-from numpy.polynomial.legendre import legval
+from scipy.special import eval_sh_legendre
 from typing import Union
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
 
-def transform(x):
-    """Transforms [0, 1] -> [-1, 1]."""
-    return 2 * x - 1
 
 def arcsine(x: np.array) -> np.array:
     aux = 1 / np.sqrt(x * (1 - x)) / np.pi
@@ -30,8 +27,7 @@ def rejection_sampling(n: int, size: int) -> np.array:
 
     while len(samples) < size:
         arcs = sample_arcsine(size)
-        c = n * [0] + [1]
-        aux = legval(transform(arcs), c) ** 2 / 4 / np.e / arcsine(arcs)
+        aux = (2 * n + 1) * eval_sh_legendre(n, arcs) ** 2 / 4 / np.e / arcsine(arcs)
         U = np.random.uniform(size=size)
         samples.extend(arcs[U <= aux])
 

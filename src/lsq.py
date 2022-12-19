@@ -3,11 +3,10 @@ Weighted polynomial least squares.
 """
 import numpy as np
 
-from scipy.special import lambertw
+from scipy.special import lambertw, eval_sh_legendre
 from typing import Callable, Literal, Union
 
-from sampling import arcsine, sample_optimal_distribution, sample_arcsine
-from legendre import index_set_transformation, optimal_density
+from sampling import sample_optimal_distribution, sample_arcsine
 from legendre import legvalnd, leggridnd
 
 
@@ -40,25 +39,30 @@ def get_sample(I: IndexSet, N: int, sampling: SamplingMode) -> np.array:
 
     return sample
 
-def get_weights(I: IndexSet, sample: np.array, sampling: SamplingMode) -> np.array:
-    if sampling == "optimal":
-        weights = 1. / optimal_density(I, sample)
-    elif sampling == "arcsine":
-        weights = 1. / arcsine(sample)
-
-    return weights
-
-def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array, weights: np.array) -> tuple[np.array, np.array]:
+def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[np.array, np.array]:
     """
     Assembles the linear system `Gv=c` for the weighted LSQ
     problem using Legendre polynomials.
     """
+    I_ = np.unique(np.array(I))
+    basis_val_uni = np.zeros((len(I_), *sample.shape))
+    for i, k in enumerate(I_):
+        basis_val_uni[i] = eval_sh_legendre(k, sample)
+
     basis_val = np.zeros((len(I), len(sample)))
     for i, eta in enumerate(I):
-        basis_val[i] = legvalnd(sample, eta)
+        prod = 1.
+        for j, k in enumerate(eta):
+            prod *= basis_val_uni[k, :, j]
+        basis_val[i] = prod
 
-    M = (np.sqrt(weights) * basis_val).T / np.sqrt(len(sample))
-    G = np.dot(M.T, M)
+    norms = np.sqrt((2 * np.array(I) + 1).prod(axis=1))
+    basis_val *= norms.reshape(-1, 1)
+
+    weights = len(I) / (basis_val ** 2).sum(axis=0)
+
+    M = basis_val * np.sqrt(weights)
+    G = np.dot(M, M.T) / len(sample)
     c = np.mean(weights * f * basis_val, axis=1)
 
     return G, c
@@ -66,7 +70,6 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array, weights: 
 class LSQ:
     def __init__(self, I: IndexSet, sampling: SamplingMode) -> None:
         self.I = I
-        self.I_ = index_set_transformation(I)
         self.sampling = sampling
         assert sampling in ["optimal", "arcsine"], \
             ValueError(f"Unkwnown sampling mode '{sampling}'.")
@@ -78,11 +81,11 @@ class LSQ:
             raise ValueError("Model was not fitted yet.")
         else:
             if grid:
-                return sum(v * leggridnd([x, x], eta) for v, eta in zip(coef, self.I_))
+                return sum(v * leggridnd([x, x], eta) for v, eta in zip(coef, self.I))
             else:
-                return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I_))
+                return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I))
 
-    def solve(self, f: Callable, N: int=None, sample: np.array=None):
+    def solve(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
         """
         Calculates the weighted least squares projection of `f`
         onto the polynomial space given by the index set `I` and
@@ -96,12 +99,12 @@ class LSQ:
             if N is not None:
                 raise ValueError("Provide either a sample or a number of samples, not both.")
 
-        weights = get_weights(self.I_, sample, self.sampling)
-        f = f(sample)
-        G, c = assemble_linear_system(self.I_, sample, f, weights)
+        if isinstance(f, Callable):
+            f = f(sample)
+
+        G, c = assemble_linear_system(self.I, sample, f)
 
         self.coef_ = np.linalg.solve(G, c)
-        self.cond_ = np.linalg.cond(G)
 
         return self
 
