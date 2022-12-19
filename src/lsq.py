@@ -85,7 +85,7 @@ class LSQ:
             else:
                 return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I))
 
-    def solve(self, f: Callable, N: int=None, sample: np.array=None):
+    def solve(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
         """
         Calculates the weighted least squares projection of `f`
         onto the polynomial space given by the index set `I` and
@@ -99,7 +99,9 @@ class LSQ:
             if N is not None:
                 raise ValueError("Provide either a sample or a number of samples, not both.")
 
-        f = f(sample)
+        if isinstance(f, Callable):
+            f = f(sample)
+
         G, c = assemble_linear_system(self.I, sample, f)
 
         self.coef_ = np.linalg.solve(G, c)

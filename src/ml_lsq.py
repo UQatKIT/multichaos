@@ -169,8 +169,7 @@ class ML_LSQ:
                 f_l = f(n)
                 f_l__ = f_l_[:N] if l > 0 else np.zeros(N)  # f_{-1} := 0
                 f_l_ = f_l(sample_l)
-                f_ = lambda _: f_l_ - f_l__
-                level_l_projector.solve(f_, sample=sample_l)
+                level_l_projector.solve(f_l_ - f_l__, sample=sample_l)
 
             self.projectors_.append(level_l_projector)
 
