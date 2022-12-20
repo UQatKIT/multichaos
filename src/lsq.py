@@ -44,16 +44,17 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
     Assembles the linear system `Gv=c` for the weighted LSQ
     problem using Legendre polynomials.
     """
-    I_ = np.unique(np.array(I))
-    basis_val_uni = np.zeros((len(I_), *sample.shape))
-    for i, k in enumerate(I_):
-        basis_val_uni[i] = eval_sh_legendre(k, sample)
+    counts = {i: np.unique(col) for i, col in enumerate(np.array(I).T)}
+    basis_val_uni = {j: {} for j in counts.keys()}
+    for j, ks in counts.items():
+        for k in ks:
+            basis_val_uni[j][k] = eval_sh_legendre(k, sample[:, j])
 
     basis_val = np.zeros((len(I), len(sample)))
     for i, eta in enumerate(I):
         prod = 1.
         for j, k in enumerate(eta):
-            prod *= basis_val_uni[k, :, j]
+            prod *= basis_val_uni[j][k]
         basis_val[i] = prod
 
     norms = np.sqrt((2 * np.array(I) + 1).prod(axis=1))
