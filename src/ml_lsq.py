@@ -184,4 +184,4 @@ class ML_LSQ:
         Calculates the L2 error on a grid given by the
         cartesian product of 1-D arrays in `sample`.
         """
-        return np.sqrt(((self(sample) - values) ** 2).mean())
+        return np.sqrt(mse(self(sample), values))

@@ -11,3 +11,6 @@ def cartesian_product(*arrays):
     for i, a in enumerate(np.ix_(*arrays)):
         arr[...,i] = a
     return arr.reshape(-1, la)
+
+def mse(x, y):
+    return ((x - y) ** 2).mean()
