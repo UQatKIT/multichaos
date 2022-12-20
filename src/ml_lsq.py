@@ -8,7 +8,7 @@ from scipy.special import lambertw
 from typing import Callable
 
 from sampling import sample_optimal_distribution
-from legendre import get_total_degree_index_set
+from polynomial_spaces import TotalDegree
 from lsq import LSQ
 
 
@@ -143,7 +143,7 @@ class ML_LSQ:
         w = print_start(eps, L, mk, nl, Ns, reduce_sample_by, reuse_sample)
 
         if reuse_sample:
-            I = get_total_degree_index_set(max(mk))
+            I = TotalDegree(max(mk), d=2).index_set
             sample = sample_optimal_distribution(I, max(Ns))
 
         self.projectors_ = []
@@ -151,11 +151,11 @@ class ML_LSQ:
             s = time.perf_counter()
 
             m = mk[L - l]
-            I = get_total_degree_index_set(m)
             N = Ns[L - l]
             n = nl[l]
 
-            level_l_projector = LSQ(I, sampling="optimal")
+            V_m = TotalDegree(m, d=2)
+            level_l_projector = LSQ(V_m, sampling="optimal")
             if not reuse_sample:
                 f_l = f(n)
                 f_l_ = f(nl[l - 1]) if l > 0 else lambda _: 0  # f_{-1} := 0

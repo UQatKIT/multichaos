@@ -5,6 +5,7 @@ import numpy as np
 
 from scipy.special import lambertw, eval_sh_legendre
 from typing import Callable, Literal, Union
+from polynomial_spaces import PolySpace
 
 from sampling import sample_optimal_distribution, sample_arcsine
 from legendre import legvalnd
@@ -69,8 +70,8 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
     return G, c
 
 class LSQ:
-    def __init__(self, I: IndexSet, sampling: SamplingMode) -> None:
-        self.I = I
+    def __init__(self, poly_space: PolySpace, sampling: SamplingMode) -> None:
+        self.poly_space = poly_space
         self.sampling = sampling
         assert sampling in ["optimal", "arcsine"], \
             ValueError(f"Unkwnown sampling mode '{sampling}'.")
@@ -81,7 +82,8 @@ class LSQ:
         except:
             raise ValueError("Model was not fitted yet.")
         else:
-            return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I))
+            I = self.poly_space.index_set
+            return sum(v * legvalnd(x, eta) for v, eta in zip(coef, I))
 
     def solve(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
         """
@@ -89,6 +91,7 @@ class LSQ:
         onto the polynomial space given by the index set `I` and
         saves the coefficients `v` w.r.t the basis given by `I`.
         """
+        I = self.poly_space.index_set
         if sample is None:
             if N is None:
                 N = get_optimal_sample_size(self.I, self.sampling)
@@ -100,8 +103,7 @@ class LSQ:
         if isinstance(f, Callable):
             f = f(sample)
 
-        G, c = assemble_linear_system(self.I, sample, f)
-
+        G, c = assemble_linear_system(I, sample, f)
         self.coef_ = np.linalg.solve(G, c)
 
         return self
