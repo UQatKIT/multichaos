@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 from scipy.special import lambertw
-from typing import Callable, Union
+from typing import Callable
 
 from sampling import sample_optimal_distribution
 from legendre import get_total_degree_index_set
@@ -118,16 +118,13 @@ class ML_LSQ:
         self.params_ = params
         self.asymptotics_ = set_asymptotics(self.params_)
 
-    def __call__(self, x: Union[np.array, list[np.array]], grid: bool=False) -> np.array:
+    def __call__(self, x: np.array) -> np.array:
         try:
             projectors = self.projectors_
         except:
             raise ValueError("Model was not fitted yet.")
         else:
-            if grid:
-                return sum(p(x, grid=True) for p in projectors)
-            else:
-                return sum(p(x) for p in projectors)
+            return sum(p(x) for p in projectors)
 
     def solve(self, f: Callable, eps: float, reduce_sample_by: float=0., reuse_sample: bool=False, verbose: bool=True) -> np.array:
         """
@@ -182,9 +179,9 @@ class ML_LSQ:
 
         return self
 
-    def l2_error(self, sample: list[np.array], values: np.array) -> float:
+    def l2_error(self, sample: np.array, values: np.array) -> float:
         """
         Calculates the L2 error on a grid given by the
         cartesian product of 1-D arrays in `sample`.
         """
-        return np.sqrt(((self(sample, grid=True) - values) ** 2).mean())
+        return np.sqrt(((self(sample) - values) ** 2).mean())

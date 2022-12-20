@@ -7,7 +7,7 @@ from scipy.special import lambertw, eval_sh_legendre
 from typing import Callable, Literal, Union
 
 from sampling import sample_optimal_distribution, sample_arcsine
-from legendre import legvalnd, leggridnd
+from legendre import legvalnd
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
@@ -74,16 +74,13 @@ class LSQ:
         assert sampling in ["optimal", "arcsine"], \
             ValueError(f"Unkwnown sampling mode '{sampling}'.")
 
-    def __call__(self, x: Union[np.array, list[np.array]], grid: bool=False) -> np.array:
+    def __call__(self, x: np.array) -> np.array:
         try:
             coef = self.coef_
         except:
             raise ValueError("Model was not fitted yet.")
         else:
-            if grid:
-                return sum(v * leggridnd([x, x], eta) for v, eta in zip(coef, self.I))
-            else:
-                return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I))
+            return sum(v * legvalnd(x, eta) for v, eta in zip(coef, self.I))
 
     def solve(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
         """
@@ -108,9 +105,9 @@ class LSQ:
 
         return self
 
-    def l2_error(self, sample: list[np.array], values: np.array) -> float:
+    def l2_error(self, sample: np.array, values: np.array) -> float:
         """
         Calculates the L2 error on a grid given by the
         cartesian product of 1-D arrays in `sample`.
         """
-        return np.sqrt(((self(sample, grid=True) - values) ** 2).mean())
+        return np.sqrt(((self(sample) - values) ** 2).mean())

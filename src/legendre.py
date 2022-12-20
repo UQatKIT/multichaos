@@ -24,16 +24,6 @@ def legvalnd(x: np.array, c: np.array) -> np.array:
     vals = norm * vals.prod(axis=0)
     return vals
 
-def leggridnd(x: list[np.array], c: np.array) -> np.array:
-    """
-    Evaluate a multivariate Legendre polynomial at the cartesian grid
-    given by the 1-D arrays in `x`.
-    """
-    assert isinstance(x, list), "x should be a list of 1-D arrays"
-    grid = np.dstack(np.meshgrid(*x)).reshape(-1, 2)
-    vals = legvalnd(grid, c).reshape(len(x[0]), len(x[0]), order="F")
-    return vals
-
 def get_total_degree_index_set(m: int, d: int=2) -> IndexSet:
     """
     Returns the total degree basis index set of order `m` as a list of tuples.
