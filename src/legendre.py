@@ -23,9 +23,3 @@ def legvalnd(x: np.array, c: np.array) -> np.array:
     norm = np.sqrt((2 * np.array(c) + 1).prod())
     vals = norm * vals.prod(axis=0)
     return vals
-
-def optimal_density(I: IndexSet, x: np.array) -> np.array:
-    """
-    Returns the optimal density function defined by `I` evaluated in `x`.
-    """
-    return sum(legvalnd(x, eta) ** 2 for eta in I) / len(I)

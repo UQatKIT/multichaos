@@ -24,6 +24,7 @@ def index_set(kind: PolynomialSpace, m: int, d: int=2) -> IndexSet:
     if kind == "TP":
         x = np.arange(m + 1)
         I = cartesian_product(*([x] * d))
+        I = list(zip(*I.T))
 
     elif kind == "TD":
         if d == 1:

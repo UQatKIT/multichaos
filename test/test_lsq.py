@@ -3,7 +3,8 @@ import pytest
 import numpy as np
 
 from src.sampling import sample_optimal_distribution
-from src.legendre import get_total_degree_index_set
+from src.polynomial_spaces import TotalDegree
+from src.polynomial_spaces import index_set
 from src.lsq import get_optimal_sample_size
 from src.lsq import assemble_linear_system
 from src.lsq import LSQ
@@ -15,7 +16,7 @@ def m():
 
 @pytest.fixture(scope="session")
 def I(m):
-    return get_total_degree_index_set(m)
+    return index_set("TD", m)
 
 @pytest.fixture(scope="session")
 def G(I):
@@ -45,9 +46,9 @@ def test_system_matrix(G, I):
 
 @pytest.mark.parametrize("deg", [0, 1, 3, 5])
 def test_lsq_polynomial_fit(deg, x):
-    I = get_total_degree_index_set(deg)
+    V = TotalDegree(deg, d=2)
     f = lambda x: (x ** deg).sum(axis=1)
-    model = LSQ(I, sampling="optimal").solve(f)
+    model = LSQ(V, sampling="optimal").solve(f)
     x = np.random.rand(1000, 2)
     err = np.sqrt(((model(x) - f(x)) ** 2).mean())
 

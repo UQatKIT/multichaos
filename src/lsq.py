@@ -95,8 +95,8 @@ class LSQ:
         I = self.poly_space.index_set
         if sample is None:
             if N is None:
-                N = get_optimal_sample_size(self.I, self.sampling)
-            sample = get_sample(self.I, N, self.sampling)
+                N = get_optimal_sample_size(I, self.sampling)
+            sample = get_sample(I, N, self.sampling)
         else:
             if N is not None:
                 raise ValueError("Provide either a sample or a number of samples, not both.")

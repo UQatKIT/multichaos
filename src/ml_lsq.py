@@ -10,6 +10,7 @@ from typing import Callable
 from sampling import sample_optimal_distribution
 from polynomial_spaces import TotalDegree
 from lsq import LSQ
+from utils import mse
 
 
 def unpack_parameters(params: dict) -> tuple[float]:

@@ -2,16 +2,20 @@ import pytest
 
 import numpy as np
 
-from src.legendre import get_total_degree_index_set
-from src.legendre import optimal_density
+from typing import Union
+
+from src.legendre import legvalnd
+from src.polynomial_spaces import index_set
 from src.sampling import sample_arcsine
 from src.sampling import sample_optimal_distribution
 from src.sampling import arcsine
 
 
+IndexSet = list[Union[int, tuple[int, ...]]]
+
 dim = 2
 m = 10
-I = get_total_degree_index_set(m, d=dim)
+I = index_set("TD", m, dim)
 size = (100_000, dim)
 
 samples = [
@@ -22,6 +26,12 @@ densities = [
     arcsine,
     lambda x: optimal_density(I, x),
 ]
+
+def optimal_density(I: IndexSet, x: np.array) -> np.array:
+    """
+    Returns the optimal density function defined by `I` evaluated in `x`.
+    """
+    return sum(legvalnd(x, eta) ** 2 for eta in I) / len(I)
 
 @pytest.mark.parametrize("sample", samples)
 def test_size(sample):
