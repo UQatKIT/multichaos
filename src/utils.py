@@ -1,7 +1,10 @@
 """
 Utility functions.
 """
+import alphashape
 import numpy as np
+
+from shapely.geometry import MultiPolygon
 
 
 def cartesian_product(*arrays):
@@ -14,3 +17,21 @@ def cartesian_product(*arrays):
 
 def mse(x, y):
     return ((x - y) ** 2).mean()
+
+def lower_envelope(points: np.array, alpha: float=1.) -> np.array:
+    hull = alphashape.alphashape(points, alpha=alpha)
+    if isinstance(hull, MultiPolygon):
+        pts = []
+        for polygon in hull.geoms:
+            pts.append(np.array(polygon.exterior.coords.xy).T)
+        hull_pts = np.vstack(pts)
+    else:
+        hull_pts = np.array(hull.exterior.coords.xy).T
+    s = np.argmin(hull_pts[:, 1])
+    e = np.argmax(hull_pts[:, 1])
+    if s > e:
+        hull_pts = np.roll(hull_pts, hull_pts.shape[0] - s, axis=0)
+        lower_envelope = hull_pts[:hull_pts.shape[0] - s + e + 1]
+    else:
+        lower_envelope = hull_pts[s:e + 1]
+    return lower_envelope
