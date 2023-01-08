@@ -20,27 +20,19 @@ def index_set(kind: PolynomialSpace, m: int, d: int=2) -> IndexSet:
     """
     Returns the index set of the given kind and order `m`.
     """
-    # TODO: Extend to `d > 2` for "TD" and "HC".
+    x = np.arange(m + 1)
+    I = cartesian_product(*([x] * d))
+
     if kind == "TP":
-        x = np.arange(m + 1)
-        I = cartesian_product(*([x] * d))
-        I = list(zip(*I.T))
-
+        pass
     elif kind == "TD":
-        if d == 1:
-            return list(range(m))
-        I = []
-        for i in range(m + 1):
-            for j in range(m - i, -1, -1):
-                I.append((i, j))
-
+        ix = np.where(np.sum(I, axis=1) <= m)
+        I = I[ix]
     elif kind == "HC":
-        I = []
-        for i in range(m + 1):
-            j = 0
-            while (i + 1) * (j + 1) <= m + 1:
-                I.append((i, j))
-                j += 1
+        ix = np.where(np.prod(I + 1, axis=1) <= m + 1)
+        I = I[ix]
+
+    I = list(zip(*I.T))
     return I
 
 class PolySpace:
