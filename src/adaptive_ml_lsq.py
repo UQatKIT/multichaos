@@ -26,17 +26,24 @@ def is_downward_closed(I: IndexSet) -> bool:
                     return False
     return True
 
-def get_neighbours(eta: tuple[int, ...], extending=False):
+def get_lower_neighbours(eta: tuple[int, ...]):
     """
-    Returns the neighbours of `eta`, where a neighbour is defined
+    Returns the lower neighbours of `eta`, where a neighbour is defined
+    as a tuple that differs in exactly one entry by one.
+    """
+    for i, k in enumerate(eta):
+        if k - 1 >= 0:
+            eta_down = eta[:i] + (k - 1,) + eta[i+1:]
+            yield eta_down
+
+def get_upper_neighbours(eta: tuple[int, ...]):
+    """
+    Returns the upper neighbours of `eta`, where a neighbour is defined
     as a tuple that differs in exactly one entry by one.
     """
     for i, k in enumerate(eta):
         eta_up = eta[:i] + (k + 1,) + eta[i+1:]
         yield eta_up
-        if not extending and k - 1 >= 0:
-            eta_down = eta[:i] + (k - 1,) + eta[i+1:]
-            yield eta_down
 
 def seperate_index(eta: tuple[int, ...]) -> tuple[tuple[int, ...], int]:
     """Seperates an index `(k, l)` into `k` and `l`."""
@@ -88,7 +95,7 @@ class AD_ML_LSQ:
             return sum(p(x) for p in projectors)
 
     def estimate_gain(self, index):
-        neighbours = set(self.I).intersection(set(get_neighbours(index)))
+        neighbours = list(get_lower_neighbours(index))
 
         gain = 0
         for nbr in neighbours:
@@ -186,7 +193,7 @@ class AD_ML_LSQ:
             self.I.append(best_eta)
 
             A.remove(best_eta)
-            for nbr in get_neighbours(best_eta, extending=True):
+            for nbr in get_upper_neighbours(best_eta):
                 if is_downward_closed(self.I + [nbr]):
                     A.append(nbr)
 
