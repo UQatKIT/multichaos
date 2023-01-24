@@ -256,15 +256,11 @@ class AD_ML_LSQ:
                     (self.sample, sample_arcsine((N - len(self.sample), d)))
                 )
 
-            evals = self.f_vals.get(l, np.empty(0))
-            if N > evals.size:
-                new_evals = f(l)(self.sample[evals.size:N])
-                self.f_vals[l] = np.hstack((evals, new_evals))
-            if l > 0:
-                evals = self.f_vals.get(l - 1, np.empty(0))
+            for l_ in [l, l - 1] if l > 0 else [l]:
+                evals = self.f_vals.get(l_, np.empty(0))
                 if N > evals.size:
-                    new_evals = f(l)(self.sample[evals.size:N])
-                    self.f_vals[l] = np.hstack((evals, new_evals))
+                    new_evals = f(l_)(self.sample[evals.size:N])
+                    self.f_vals[l_] = np.hstack((evals, new_evals))
 
             sample = self.sample[:N]
             f_ = self.f_vals[l][:N] - self.f_vals[l-1][:N] if l > 0 else self.f_vals[l][:N]
