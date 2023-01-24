@@ -73,6 +73,10 @@ def sum_times(times: dict[int, list[tuple[float, int]]]) -> dict[int, float]:
     return means_
 
 def polynomial_space_V(I, l):
+    """
+    Constructs the polynomial space `V` which is a partition given by
+    exponential index sets defined by the slice `I_l`.
+    """
     V = []
     for eta in slice_index_set(I, l):
         k, _ = seperate_index(eta)
@@ -95,6 +99,10 @@ class AD_ML_LSQ:
             return sum(p(x) for p in projectors)
 
     def estimate_gain(self, index):
+        """
+        Estimates the gain of the index `(k, l)` by calculating the
+        norm of the projection of `f_l - f_{l-1}` onto `P_k`.
+        """
         neighbours = list(get_lower_neighbours(index))
 
         gain = 0
@@ -106,7 +114,8 @@ class AD_ML_LSQ:
             k, l = seperate_index(nbr)
 
             V = polynomial_space_V(self.I, l)
-            N = int(.1 * get_optimal_sample_size(V, sampling="arcsine"))
+            N = get_optimal_sample_size(V, sampling="arcsine")
+            N = int((1 - self.reduce) * N)
 
             if N > len(self.sample):
                 self.sample = np.vstack(
@@ -141,8 +150,10 @@ class AD_ML_LSQ:
         return gain
 
     def estimate_work(self, index):
-        if index in self.works:
-            return self.works[index]
+        """
+        Estimates the work of the index `(k, l)` by measuring the time of
+        computing `f_l - f_{l-1}` and the number of new samples needed.
+        """
         k, l = seperate_index(index)
 
         if l not in self.f_times:
@@ -162,8 +173,6 @@ class AD_ML_LSQ:
         work = times[l] + times[l - 1] if l > 0 else times[l]
         work *= n_add - n
 
-        self.works[index] = work
-
         return work
 
     def construct_multi_index_set(self):
@@ -178,7 +187,6 @@ class AD_ML_LSQ:
         self.f_times = {}
 
         self.gains = {}
-        self.works = {}
         self.ratios = {}
 
         for _ in range(self.n_steps):
@@ -188,6 +196,7 @@ class AD_ML_LSQ:
                 work = self.estimate_work(eta)
 
                 ratios[eta] = gain / work
+                self.ratios[eta] = gain / work
 
             best_eta = max(ratios, key=ratios.get)
             self.I.append(best_eta)
@@ -197,25 +206,50 @@ class AD_ML_LSQ:
                 if is_downward_closed(self.I + [nbr]):
                     A.append(nbr)
 
-            self.ratios.update(
-                {index: ratio for index, ratio in ratios.items() if index not in self.ratios}
-            )
-
         return
 
-    def solve(self, f: Callable, n_steps: int, d: int) -> AD_ML_LSQ:
+    def print_start(self, mk: np.array, nl: np.array, Ns: np.array, reduce=.9) -> list[int]:
+        w = [max(map(len, map(str, arr))) for arr in [mk, nl, Ns]]
+        w[0] = max(w[0], len("dim(V)"))
+        verboseprint(f"n_steps = {self.n_steps}, L = {self.L}, reduce = {100 * reduce}%")
+        verboseprint(f"{'Level':>5} | {'dim(V)':>{w[0]}} | {'n':>{w[1]}} | {'N':>{w[2]}}")
+        verboseprint("-" * (14 + sum(w)))
+        return w
+
+    def print_level(self, l: int, m: int, n: int, N: int, w: list[int]):
+        verboseprint(f"{l:>5} | {m:>{w[0]}} | {n:>{w[1]}} | {N:>{w[2]}}")
+
+    def print_end(self, time):
+        verboseprint(f"TOTAL TIME: {time:.3f}s\n")
+
+    def solve(self, f: Callable, n_steps: int, d: int, reduce: float=0., verbose: bool=True):
         self.f = f
         self.d = d
         self.n_steps = n_steps
+        self.reduce = reduce
+        self.verbose = verbose
+
+        global verboseprint
+        verboseprint = print if self.verbose else lambda *a, **k: None
+
+        s_total = time.perf_counter()
 
         self.construct_multi_index_set()
 
         self.L = max(eta[-1] for eta in self.I)
 
+        Vk = [polynomial_space_V(self.I, l) for l in range(self.L + 1)]
+        self.mk = [len(V) for V in Vk]
+        self.nl = [10 * 2 ** l for l in range(self.L + 1)]
+        self.Ns = [get_optimal_sample_size(V, sampling="arcsine") for V in Vk]
+        self.Ns = [int((1 - self.reduce) * N) for N in self.Ns]
+
+        w = self.print_start(self.mk, self.nl, self.Ns)
+
         self.projectors_ = []
         for l in range(self.L + 1):
-            V = polynomial_space_V(self.I, l)
-            N = int(.1 * get_optimal_sample_size(V, sampling="arcsine"))
+            V = Vk[l]
+            N = self.Ns[l]
 
             if N > len(self.sample):
                 self.sample = np.vstack(
@@ -233,12 +267,17 @@ class AD_ML_LSQ:
                     self.f_vals[l] = np.hstack((evals, new_evals))
 
             sample = self.sample[:N]
-            f_ = self.f_vals[l][:N] - self.f_vals[l - 1][:N] if l > 0 else self.f_vals[l][:N]
+            f_ = self.f_vals[l][:N] - self.f_vals[l-1][:N] if l > 0 else self.f_vals[l][:N]
             space = PolySpace(m=None, d=None)
             space.index_set = V
 
             level_l_projector = LSQ(space, sampling="arcsine").solve(f_, sample=sample)
             self.projectors_.append(level_l_projector)
+
+            self.print_level(l, self.mk[l], self.nl[l], N, w)
+
+        e_total = time.perf_counter()
+        self.print_end(e_total - s_total)
 
         return self
 
