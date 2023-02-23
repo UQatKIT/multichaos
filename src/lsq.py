@@ -3,12 +3,12 @@ Weighted polynomial least squares.
 """
 import numpy as np
 
-from scipy.special import lambertw, eval_sh_legendre
+from scipy.special import lambertw
 from typing import Callable, Literal, Union
 from polynomial_spaces import PolySpace
 
 from sampling import sample_optimal_distribution, sample_arcsine
-from legendre import legvalnd
+from legendre import legvalnd, legval_up_to_degree
 from utils import mse
 
 
@@ -46,20 +46,27 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
     Assembles the linear system `Gv=c` for the weighted LSQ
     problem using Legendre polynomials.
     """
-    counts = {i: np.unique(col) for i, col in enumerate(np.array(I).T)}
-    basis_val_uni = {j: {} for j in counts.keys()}
-    for j, ks in counts.items():
-        for k in ks:
-            basis_val_uni[j][k] = eval_sh_legendre(k, sample[:, j])
+    I = np.array(I)
 
-    basis_val = np.zeros((len(I), len(sample)))
-    for i, eta in enumerate(I):
-        prod = 1.
-        for j, k in enumerate(eta):
-            prod *= basis_val_uni[j][k]
-        basis_val[i] = prod
+    dim = sample.ndim
+    if dim == 1:
+        basis_val = legval_up_to_degree(max(I), sample)
+    else:
+        max_idxs = np.max(I, axis=0)
+        basis_val_uni = {}
+        for j in range(dim):
+            basis_val_uni[j] = legval_up_to_degree(max_idxs[j], sample[:, j])
 
-    norms = np.sqrt((2 * np.array(I) + 1).prod(axis=1))
+        basis_val = np.zeros((len(I), len(sample)))
+        for i, eta in enumerate(I):
+            prod = 1.
+            for j, k in enumerate(eta):
+                prod *= basis_val_uni[j][k]
+            basis_val[i] = prod
+
+    norms = np.sqrt((2 * I + 1))
+    if dim > 1:
+        norms = norms.prod(axis=1)
     basis_val *= norms.reshape(-1, 1)
 
     weights = len(I) / (basis_val ** 2).sum(axis=0)
