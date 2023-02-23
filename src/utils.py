@@ -13,7 +13,7 @@ def cartesian_product(*arrays):
     arr = np.empty([len(a) for a in arrays] + [la], dtype=dtype)
     for i, a in enumerate(np.ix_(*arrays)):
         arr[...,i] = a
-    return arr.reshape(-1, la, order="F")
+    return arr.reshape(-1, la, order="C")
 
 def mse(x, y):
     return ((x - y) ** 2).mean()
