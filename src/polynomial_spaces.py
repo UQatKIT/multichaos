@@ -20,6 +20,9 @@ def index_set(kind: PolynomialSpace, m: int, d: int=2) -> IndexSet:
     """
     Returns the index set of the given kind and order `m`.
     """
+    if d == 1:
+        return list(range(m + 1))
+
     x = np.arange(m + 1)
     I = cartesian_product(*([x] * d))
 
