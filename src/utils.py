@@ -35,3 +35,9 @@ def lower_envelope(points: np.array, alpha: float=1.) -> np.array:
     else:
         lower_envelope = hull_pts[s:e + 1]
     return lower_envelope
+
+def make_array_strictly_increasing(arr: np.array) -> np.array:
+    for i in range(1, len(arr)):
+        if arr[i-1] >= arr[i]:
+            arr[i] = arr[i-1] + 1
+    return arr
