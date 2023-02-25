@@ -5,12 +5,21 @@ import numpy as np
 import time
 
 from scipy.special import lambertw
-from typing import Callable
+from typing import Callable, Literal
 
 from sampling import sample_optimal_distribution
+from polynomial_spaces import TensorProduct
 from polynomial_spaces import TotalDegree
+from polynomial_spaces import HyperbolicCross
 from lsq import LSQ
 from utils import mse
+
+
+PolySpace = Literal[
+    "TP",   # tensor product
+    "TD",   # total degree
+    "HC",   # hyperbolic cross
+]
 
 
 def unpack_parameters(params: dict) -> tuple[float]:
@@ -115,8 +124,21 @@ def print_end(time):
 
 
 class ML_LSQ:
-    def __init__(self, params: dict) -> None:
+    def __init__(self, params: dict, dim: int, poly_space: PolySpace) -> None:
         self.params_ = params
+        self.dim_ = dim
+
+        if poly_space == "TP":
+            self.poly_space = TensorProduct
+        elif poly_space == "TD":
+            self.poly_space = TotalDegree
+        elif poly_space == "HC":
+            self.poly_space = HyperbolicCross
+        else:
+            raise ValueError(
+                "{poly_space} is not a valid polynomial space. Should be one of ['TP', 'TD', 'HC']."
+                )
+
         self.asymptotics_ = set_asymptotics(self.params_)
 
     def __call__(self, x: np.array) -> np.array:
@@ -138,13 +160,17 @@ class ML_LSQ:
 
         L = get_number_of_levels(eps, self.params_)
         mk, nl, Ns = get_tuning_params(L, self.params_)
-
         Ns = np.ceil((1 - reduce_sample_by) * Ns).astype(int)
+
+        self.L = L
+        self.mk = mk
+        self.nl = nl
+        self.Ns = Ns
 
         w = print_start(eps, L, mk, nl, Ns, reduce_sample_by, reuse_sample)
 
         if reuse_sample:
-            I = TotalDegree(max(mk), d=2).index_set
+            I = self.poly_space(max(mk), d=self.dim_).index_set
             sample = sample_optimal_distribution(I, max(Ns))
 
         self.projectors_ = []
@@ -155,7 +181,7 @@ class ML_LSQ:
             N = Ns[L - l]
             n = nl[l]
 
-            V_m = TotalDegree(m, d=2)
+            V_m = self.poly_space(m, d=self.dim_)
             level_l_projector = LSQ(V_m, sampling="optimal")
             if not reuse_sample:
                 f_l = f(n)
