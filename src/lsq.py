@@ -2,6 +2,7 @@
 Weighted polynomial least squares.
 """
 import numpy as np
+import warnings
 
 from scipy.special import lambertw
 from typing import Callable, Literal, Union
@@ -113,6 +114,10 @@ class LSQ:
 
         G, c = assemble_linear_system(I, sample, f)
         self.coef_ = np.linalg.solve(G, c)
+        self.cond_ = np.linalg.cond(G)
+
+        if self.cond_ > 3:
+            warnings.warn('Ill conditioned Gramian matrix encountered (cond(G) > 3)')
 
         return self
 
