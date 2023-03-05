@@ -115,6 +115,8 @@ class LSQ:
         G, c = assemble_linear_system(I, sample, f)
         self.coef_ = np.linalg.solve(G, c)
         self.cond_ = np.linalg.cond(G)
+        self.sample_ = sample
+        self.f_vals_ = f
 
         if self.cond_ > 3:
             warnings.warn('Ill conditioned Gramian matrix encountered (cond(G) > 3)')
