@@ -222,7 +222,7 @@ class AD_ML_LSQ:
     def print_end(self, time):
         verboseprint(f"TOTAL TIME: {time:.3f}s\n")
 
-    def solve(self, f: Callable, n_steps: int, d: int, reduce: float=0., verbose: bool=True):
+    def fit(self, f: Callable, n_steps: int, d: int, reduce: float=0., verbose: bool=True):
         self.f = f
         self.d = d
         self.n_steps = n_steps
@@ -267,7 +267,7 @@ class AD_ML_LSQ:
             space = PolySpace(m=None, d=None)
             space.index_set = V
 
-            level_l_projector = LSQ(space, sampling="arcsine").solve(f_, sample=sample)
+            level_l_projector = LSQ(space, sampling="arcsine").fit(f_, sample=sample)
             self.projectors_.append(level_l_projector)
 
             self.print_level(l, self.mk[l], self.nl[l], N, w)

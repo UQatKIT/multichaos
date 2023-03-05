@@ -128,7 +128,7 @@ class ML_LSQ:
         else:
             return sum(p(x) for p in projectors)
 
-    def solve(self, f: Callable, eps: float, reduce_sample_by: float=0., reuse_sample: bool=False, verbose: bool=True) -> np.array:
+    def fit(self, f: Callable, eps: float, reduce_sample_by: float=0., reuse_sample: bool=False, verbose: bool=True) -> np.array:
         """
         Returns the coefficients `v` w.r.t the total degree basis on each level `l = 0, ..., L`.
         """
@@ -166,13 +166,13 @@ class ML_LSQ:
                 f_l = f(n)
                 f_l_ = f(nl[l - 1]) if l > 0 else lambda _: 0  # f_{-1} := 0
                 f_ = lambda g: f_l(g) - f_l_(g)
-                level_l_projector.solve(f_, N=N)
+                level_l_projector.fit(f_, N=N)
             else:
                 sample_l = sample[:N]
                 f_l = f(n)
                 f_l__ = f_l_[:N] if l > 0 else np.zeros(N)  # f_{-1} := 0
                 f_l_ = f_l(sample_l)
-                level_l_projector.solve(f_l_ - f_l__, sample=sample_l)
+                level_l_projector.fit(f_l_ - f_l__, sample=sample_l)
 
             self.projectors_.append(level_l_projector)
 

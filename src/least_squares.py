@@ -94,7 +94,7 @@ class LSQ:
             I = self.poly_space.index_set
             return sum(v * legvalnd(x, eta) for v, eta in zip(coef, I))
 
-    def solve(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
+    def fit(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
         """
         Calculates the weighted least squares projection of `f`
         onto the polynomial space given by the index set `I` and
