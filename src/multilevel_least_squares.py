@@ -11,7 +11,7 @@ from sampling import sample_optimal_distribution
 from polynomial_spaces import TensorProduct
 from polynomial_spaces import TotalDegree
 from polynomial_spaces import HyperbolicCross
-from lsq import LSQ
+from least_squares import LSQ
 from utils import mse
 
 

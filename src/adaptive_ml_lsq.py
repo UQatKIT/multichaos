@@ -6,8 +6,8 @@ from typing import Callable, Union
 
 from polynomial_spaces import PolySpace
 from sampling import sample_arcsine
-from lsq import get_optimal_sample_size
-from lsq import LSQ
+from least_squares import get_optimal_sample_size
+from least_squares import LSQ
 from utils import mse
 
 
