@@ -23,33 +23,27 @@ PolySpace = Literal[
 
 
 def unpack_parameters(params: dict) -> tuple[float]:
-    beta_s = params["beta_s"]
-    beta_w = params["beta_w"]
+    beta = params["beta"]
     gamma = params["gamma"]
     sigma = params["sigma"]
     alpha = params["alpha"]
-    return beta_s, beta_w, gamma, sigma, alpha
+    return beta, gamma, sigma, alpha
 
 def set_asymptotics(params: dict) -> tuple[float, float]:
     """
     Calculates two asymptotic parameters for the work of the multilevel algorithm.
     """
-    beta_s, beta_w, gamma, sigma, alpha = unpack_parameters(params)
+    beta, gamma, sigma, alpha = unpack_parameters(params)
 
-    c = gamma / beta_s - sigma / alpha
-    theta = beta_s / beta_w
-    l = theta * gamma / beta_s + (1 - theta) * sigma / alpha if c > 0 else sigma / alpha
+    c = gamma / beta - sigma / alpha
+    l = max(gamma / beta, sigma / alpha)
 
-    if c < 0:
-        t = 2
-    elif c == 0:
-        t = 3 + sigma / alpha
-    elif c > 0 and beta_s == beta_w:
+    if c > 0:
         t = 1
-    elif c > 0 and beta_s > beta_w:
+    elif c < 0:
         t = 2
     else:
-        raise ValueError("Not valid combination of assumption constants.")
+        t = 3 + sigma / alpha
 
     return l, t
 
@@ -58,13 +52,13 @@ def get_number_of_levels(eps: float, params: dict) -> int:
     Returns the number of levels `L` required to achieve the
     theoretical residual and work bounds given by the tolerance `eps`.
     """
-    beta_s, beta_w, gamma, sigma, alpha = unpack_parameters(params)
+    beta, gamma, sigma, alpha = unpack_parameters(params)
 
-    c = gamma / beta_s - sigma / alpha
-    if c < 0:
+    c = gamma / beta - sigma / alpha
+    if c > 0:
+        L = - (gamma + beta) / beta * np.log(eps)
+    elif c < 0:
         L = - (sigma + alpha) / alpha * np.log(eps)
-    elif c > 0:
-        L = - (gamma + beta_s) / beta_w * np.log(eps)
     else:
         grid = np.linspace(1, 100, 1000)
         ix = np.argmin(np.abs(np.exp(-grid * alpha / (sigma + alpha)) * (grid + 1) - eps))
@@ -79,14 +73,10 @@ def get_tuning_params(L: int, params: dict, scale: float=1e-2) -> tuple[np.array
     Returns the tuning parameters for the multilevel algorithm,
     given problem-dependent constants for specific assumptions.
     """
-    beta_s, beta_w, gamma, sigma, alpha = unpack_parameters(params)
+    beta, gamma, sigma, alpha = unpack_parameters(params)
 
-    delta = (beta_w - beta_s) / (gamma + beta_s) / alpha
-    M = np.exp(delta * L) if gamma / beta_s > sigma / alpha else 1
-    
-    zero_to_L = np.arange(L + 1)
-    mk = M * np.exp(zero_to_L / (sigma + alpha))
-    nl = np.exp(zero_to_L / (gamma + beta_s))
+    mk = np.exp(np.arange(L + 1) / (sigma + alpha))
+    nl = np.exp(np.arange(L + 1) / (gamma + beta))
 
     r = L
     kappa = (1 - np.log(2)) / (1 + r) / 2
@@ -102,9 +92,9 @@ def theoretical_total_work(L: int, Ns: np.array, params: dict) -> float:
     """
     Returns the (theoretical) computational total work of the multilevel algorithm.
     """
-    beta_s, _, gamma, _, _ = unpack_parameters(params)
+    beta, gamma, sigma, alpha = unpack_parameters(params)
 
-    phi = np.exp(gamma / (gamma + beta_s))
+    phi = np.exp(gamma / (gamma + beta))
     work = Ns[0] + (phi - 1) * (Ns[1:] * phi ** np.arange(L)).sum()
 
     return work
