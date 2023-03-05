@@ -68,7 +68,7 @@ def get_number_of_levels(eps: float, params: dict) -> int:
 
     return L
 
-def get_tuning_params(L: int, params: dict, scale: float=1e-2) -> tuple[np.array, np.array, np.array]:
+def get_tuning_params(L: int, params: dict) -> tuple[np.array, np.array, np.array]:
     """
     Returns the tuning parameters for the multilevel algorithm,
     given problem-dependent constants for specific assumptions.
@@ -80,7 +80,7 @@ def get_tuning_params(L: int, params: dict, scale: float=1e-2) -> tuple[np.array
 
     r = L
     kappa = (1 - np.log(2)) / (1 + r) / 2
-    aux = (1 + scale) * mk ** sigma
+    aux = mk ** sigma
     Ns = np.ceil(np.real(np.exp(-lambertw(-kappa / aux, k=-1))))
 
     mk = np.ceil(mk).astype(int)
