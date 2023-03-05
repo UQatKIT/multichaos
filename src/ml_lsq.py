@@ -88,17 +88,6 @@ def get_tuning_params(L: int, params: dict) -> tuple[np.array, np.array, np.arra
 
     return mk, nl, Ns
 
-def theoretical_total_work(L: int, Ns: np.array, params: dict) -> float:
-    """
-    Returns the (theoretical) computational total work of the multilevel algorithm.
-    """
-    beta, gamma, sigma, alpha = unpack_parameters(params)
-
-    phi = np.exp(gamma / (gamma + beta))
-    work = Ns[0] + (phi - 1) * (Ns[1:] * phi ** np.arange(L)).sum()
-
-    return work
-
 def print_start(eps: float, L: int, mk: np.array, nl: np.array, Ns: np.array, reduce: float, reuse_sample: bool) -> list[int]:
     w = [max(map(len, map(str, arr))) for arr in [mk, nl, Ns]]
     verboseprint(f"eps = {eps:.2e}, L = {L}, reduce = {100 * reduce}%, reuse_sample = {reuse_sample}")
