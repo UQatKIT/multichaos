@@ -80,7 +80,7 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
 
     return G, c
 
-class LSQ:
+class SingleLevelLSQ:
     def __init__(self, poly_space: PolySpace, sampling: SamplingMode) -> None:
         self.poly_space = poly_space
         self.sampling = sampling

@@ -7,7 +7,7 @@ from typing import Callable, Union
 from polynomial_spaces import PolySpace
 from sampling import sample_arcsine
 from least_squares import get_optimal_sample_size
-from least_squares import LSQ
+from least_squares import SingleLevelLSQ
 from utils import mse
 
 
@@ -83,7 +83,7 @@ def polynomial_space_V(I, l):
         V.extend(get_power_of_two_index_set(k))
     return V
 
-class AD_ML_LSQ:
+class AdaptiveLSQ:
     def __init__(self, f=None, n_steps=None, d=None):
         self.f = f
         self.d = d
@@ -138,7 +138,7 @@ class AD_ML_LSQ:
             space = PolySpace(m=None, d=None)
             space.index_set = V
 
-            model = LSQ(space, sampling="arcsine").solve(f, sample=sample)
+            model = SingleLevelLSQ(space, sampling="arcsine").solve(f, sample=sample)
 
             under_consideration = get_power_of_two_index_set(k)
             self.gains[nbr] = np.linalg.norm(
@@ -267,7 +267,7 @@ class AD_ML_LSQ:
             space = PolySpace(m=None, d=None)
             space.index_set = V
 
-            level_l_projector = LSQ(space, sampling="arcsine").fit(f_, sample=sample)
+            level_l_projector = SingleLevelLSQ(space, sampling="arcsine").fit(f_, sample=sample)
             self.projectors_.append(level_l_projector)
 
             self.print_level(l, self.mk[l], self.nl[l], N, w)

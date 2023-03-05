@@ -11,7 +11,7 @@ from sampling import sample_optimal_distribution
 from polynomial_spaces import TensorProduct
 from polynomial_spaces import TotalDegree
 from polynomial_spaces import HyperbolicCross
-from least_squares import LSQ
+from least_squares import SingleLevelLSQ
 from utils import mse
 
 
@@ -102,7 +102,7 @@ def print_end(time):
     verboseprint(f"TOTAL TIME: {time:.3f}s\n")
 
 
-class ML_LSQ:
+class MultiLevelLSQ:
     def __init__(self, params: dict, dim: int, poly_space: PolySpace) -> None:
         self.params_ = params
         self.dim_ = dim
@@ -161,7 +161,7 @@ class ML_LSQ:
             n = nl[l]
 
             V_m = self.poly_space(m, d=self.dim_)
-            level_l_projector = LSQ(V_m, sampling="optimal")
+            level_l_projector = SingleLevelLSQ(V_m, sampling="optimal")
             if not reuse_sample:
                 f_l = f(n)
                 f_l_ = f(nl[l - 1]) if l > 0 else lambda _: 0  # f_{-1} := 0
