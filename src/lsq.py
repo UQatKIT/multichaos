@@ -24,7 +24,7 @@ def get_optimal_sample_size(I: IndexSet, sampling: SamplingMode, r: float=1.) ->
     if sampling == "optimal":
         aux = len(I)
     elif sampling == "arcsine":
-        C = 1.1
+        C = 1.0
         d = len(I[0]) if len(I) else 1.
         aux = C ** d * len(I)
 
