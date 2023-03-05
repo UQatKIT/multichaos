@@ -28,6 +28,8 @@ def get_optimal_sample_size(I: IndexSet, sampling: SamplingMode, r: float=1.) ->
         C = 1.0
         d = len(I[0]) if len(I) else 1.
         aux = C ** d * len(I)
+    else:
+        raise ValueError(f"Unknown sampling mode '{sampling}'.")
 
     kappa = (1 - np.log(2)) / (1 + r) / 2
     N = np.ceil(np.real(np.exp(-lambertw(- kappa / aux, k=-1)))).astype(int)
@@ -82,8 +84,6 @@ class LSQ:
     def __init__(self, poly_space: PolySpace, sampling: SamplingMode) -> None:
         self.poly_space = poly_space
         self.sampling = sampling
-        assert sampling in ["optimal", "arcsine"], \
-            ValueError(f"Unkwnown sampling mode '{sampling}'.")
 
     def __call__(self, x: np.array) -> np.array:
         try:
