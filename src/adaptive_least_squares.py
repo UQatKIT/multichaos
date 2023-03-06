@@ -135,7 +135,7 @@ class AdaptiveLSQ:
 
             sample = self.sample[:N]
             f = self.f_vals[l][:N] - self.f_vals[l-1][:N] if l > 0 else self.f_vals[l][:N]
-            space = PolySpace(m=None, d=None)
+            space = PolySpace("TD", m=1, d=1)
             space.index_set = V
 
             model = SingleLevelLSQ(space, sampling="arcsine").fit(f, sample=sample.squeeze())
@@ -264,7 +264,7 @@ class AdaptiveLSQ:
 
             sample = self.sample[:N]
             f_ = self.f_vals[l][:N] - self.f_vals[l-1][:N] if l > 0 else self.f_vals[l][:N]
-            space = PolySpace(m=None, d=None)
+            space = PolySpace("TD", m=1, d=1)
             space.index_set = V
 
             level_l_projector = SingleLevelLSQ(space, sampling="arcsine").fit(f_, sample=sample.squeeze())
