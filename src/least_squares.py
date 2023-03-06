@@ -53,7 +53,7 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
 
     dim = sample.ndim
     if dim == 1:
-        basis_val = legval_up_to_degree(max(I), sample)
+        basis_val = legval_up_to_degree(np.max(I), sample)
     else:
         max_idxs = np.max(I, axis=0)
         basis_val_uni = {}

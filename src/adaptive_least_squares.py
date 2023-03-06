@@ -138,7 +138,7 @@ class AdaptiveLSQ:
             space = PolySpace(m=None, d=None)
             space.index_set = V
 
-            model = SingleLevelLSQ(space, sampling="arcsine").solve(f, sample=sample)
+            model = SingleLevelLSQ(space, sampling="arcsine").fit(f, sample=sample.squeeze())
 
             under_consideration = get_power_of_two_index_set(k)
             self.gains[nbr] = np.linalg.norm(
@@ -267,7 +267,7 @@ class AdaptiveLSQ:
             space = PolySpace(m=None, d=None)
             space.index_set = V
 
-            level_l_projector = SingleLevelLSQ(space, sampling="arcsine").fit(f_, sample=sample)
+            level_l_projector = SingleLevelLSQ(space, sampling="arcsine").fit(f_, sample=sample.squeeze())
             self.projectors_.append(level_l_projector)
 
             self.print_level(l, self.mk[l], self.nl[l], N, w)
