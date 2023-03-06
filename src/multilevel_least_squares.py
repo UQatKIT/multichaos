@@ -76,7 +76,7 @@ def get_tuning_params(L: int, params: dict) -> tuple[np.array, np.array, np.arra
     mk = np.exp(np.arange(L + 1) / (sigma + alpha))
     nl = np.exp(np.arange(L + 1) / (gamma + beta))
 
-    r = L
+    r = 1
     kappa = (1 - np.log(2)) / (1 + r) / 2
     aux = mk ** sigma
     Ns = np.ceil(np.real(np.exp(-lambertw(-kappa / aux, k=-1))))
