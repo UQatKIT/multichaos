@@ -8,14 +8,12 @@ from scipy.special import lambertw
 from typing import Callable, Literal
 
 from sampling import sample_optimal_distribution
-from polynomial_spaces import TensorProduct
-from polynomial_spaces import TotalDegree
-from polynomial_spaces import HyperbolicCross
+from polynomial_spaces import PolySpace
 from least_squares import SingleLevelLSQ
 from utils import mse
 
 
-PolySpace = Literal[
+PolynomialSpace = Literal[
     "TP",   # tensor product
     "TD",   # total degree
     "HC",   # hyperbolic cross
@@ -103,20 +101,10 @@ def print_end(time):
 
 
 class MultiLevelLSQ:
-    def __init__(self, params: dict, dim: int, poly_space: PolySpace) -> None:
+    def __init__(self, params: dict, dim: int, poly_space: PolynomialSpace) -> None:
         self.params_ = params
         self.dim_ = dim
-
-        if poly_space == "TP":
-            self.poly_space = TensorProduct
-        elif poly_space == "TD":
-            self.poly_space = TotalDegree
-        elif poly_space == "HC":
-            self.poly_space = HyperbolicCross
-        else:
-            raise ValueError(
-                "{poly_space} is not a valid polynomial space. Should be one of ['TP', 'TD', 'HC']."
-                )
+        self.poly_space = poly_space
 
         self.asymptotics_ = set_asymptotics(self.params_)
 
@@ -149,7 +137,7 @@ class MultiLevelLSQ:
         w = print_start(eps, L, mk, nl, Ns, reduce_sample_by, reuse_sample)
 
         if reuse_sample:
-            I = self.poly_space(max(mk), d=self.dim_).index_set
+            I = PolySpace(self.poly_space, max(mk), d=self.dim_).index_set
             sample = sample_optimal_distribution(I, max(Ns))
 
         self.projectors_ = []
@@ -160,7 +148,7 @@ class MultiLevelLSQ:
             N = Ns[L - l]
             n = nl[l]
 
-            V_m = self.poly_space(m, d=self.dim_)
+            V_m = PolySpace(self.poly_space, m, d=self.dim_)
             level_l_projector = SingleLevelLSQ(V_m, sampling="optimal")
             if not reuse_sample:
                 f_l = f(n)
