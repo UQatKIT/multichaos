@@ -208,7 +208,7 @@ class AdaptiveLSQ:
 
         return
 
-    def print_start(self, mk: np.array, nl: np.array, Ns: np.array, reduce=.9) -> list[int]:
+    def print_start(self, mk: np.array, nl: np.array, Ns: np.array, reduce: float) -> list[int]:
         w = [max(map(len, map(str, arr))) for arr in [mk, nl, Ns]]
         w[0] = max(w[0], len("dim(V)"))
         verboseprint(f"n_steps = {self.n_steps}, L = {self.L}, reduce = {100 * reduce}%")
@@ -244,7 +244,7 @@ class AdaptiveLSQ:
         self.Ns = [get_optimal_sample_size(V, sampling="arcsine") for V in Vk]
         self.Ns = [int((1 - self.reduce) * N) for N in self.Ns]
 
-        w = self.print_start(self.mk, self.nl, self.Ns)
+        w = self.print_start(self.mk, self.nl, self.Ns, reduce)
 
         self.projectors_ = []
         for l in range(self.L + 1):
