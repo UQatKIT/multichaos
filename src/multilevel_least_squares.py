@@ -110,10 +110,14 @@ class MultiLevelLSQ:
         else:
             return sum(p(x) for p in projectors)
 
-    def fit(self, f: Callable, eps: float, reduce_sample_by: float=0., reuse_sample: bool=False, verbose: bool=True) -> np.array:
+    def fit(self, f: Callable, eps: float, opt: dict) -> np.array:
         """
         Returns the coefficients `v` w.r.t the total degree basis on each level `l = 0, ..., L`.
         """
+        reuse_sample, reduce_sample_by, verbose = itemgetter(
+            "reuse_sample", "reduce_sample_by", "verbose"
+        )(opt)
+
         global verboseprint
         verboseprint = print if verbose else lambda *a, **k: None
 
