@@ -24,16 +24,16 @@ class MultiLevelLSQ:
         self.sigma = problem["sigma"]
         self.alpha = problem["alpha"]
 
-        self.response = problem["response"]
-        self.dim = problem["dim"]
+        self.response = problem.get("response", None)
+        self.dim = problem.get("dim", None)
 
-        self.reuse_sample = params["reuse_sample"]
-        self.reduce_sample_by = params["reduce_sample_by"]
-        self.poly_space = params["poly_space"]
-        self.verbose = params["verbose"]
+        self.reuse_sample = params.get("reuse_sample", False)
+        self.reduce_sample_by = params.get("reduce_sample_by", .0)
+        self.poly_space = params.get("poly_space", "TD")
+        self.verbose = params.get("verbose", True)
 
-        self.C_m = params["C_m"]
-        self.C_n = params["C_n"]
+        self.C_m = params.get("C_m", 1.)
+        self.C_n = params.get("C_n", 1.)
 
         self.asymptotics()
 
