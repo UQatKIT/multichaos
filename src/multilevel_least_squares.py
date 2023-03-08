@@ -4,6 +4,7 @@ Multilevel weighted polynomial least squares.
 import numpy as np
 import time
 
+from operator import itemgetter
 from scipy.special import lambertw
 from typing import Callable, Literal
 
@@ -20,18 +21,11 @@ PolynomialSpace = Literal[
 ]
 
 
-def unpack_parameters(params: dict) -> tuple[float]:
-    beta = params["beta"]
-    gamma = params["gamma"]
-    sigma = params["sigma"]
-    alpha = params["alpha"]
-    return beta, gamma, sigma, alpha
-
 def set_asymptotics(params: dict) -> tuple[float, float]:
     """
     Calculates two asymptotic parameters for the work of the multilevel algorithm.
     """
-    beta, gamma, sigma, alpha = unpack_parameters(params)
+    beta, gamma, sigma, alpha = itemgetter("beta", "gamma", "sigma", "alpha")(params)
 
     c = gamma / beta - sigma / alpha
     l = max(gamma / beta, sigma / alpha)
@@ -50,7 +44,7 @@ def get_number_of_levels(eps: float, params: dict) -> int:
     Returns the number of levels `L` required to achieve the
     theoretical residual and work bounds given by the tolerance `eps`.
     """
-    beta, gamma, sigma, alpha = unpack_parameters(params)
+    beta, gamma, sigma, alpha = itemgetter("beta", "gamma", "sigma", "alpha")(params)
 
     c = gamma / beta - sigma / alpha
     if c > 0:
@@ -71,7 +65,7 @@ def get_tuning_params(L: int, params: dict) -> tuple[np.array, np.array, np.arra
     Returns the tuning parameters for the multilevel algorithm,
     given problem-dependent constants for specific assumptions.
     """
-    beta, gamma, sigma, alpha = unpack_parameters(params)
+    beta, gamma, sigma, alpha = itemgetter("beta", "gamma", "sigma", "alpha")(params)
 
     mk = np.exp(np.arange(L + 1) / (sigma + alpha))
     nl = np.exp(np.arange(L + 1) / (gamma + beta))
