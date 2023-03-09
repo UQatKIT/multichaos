@@ -91,8 +91,7 @@ class SingleLevelLSQ:
         except:
             raise ValueError("Model was not fitted yet.")
         else:
-            I = self.poly_space.index_set
-            return sum(v * legvalnd(x, eta) for v, eta in zip(coef, I))
+            return sum(v * legvalnd(x, eta) for eta, v in coef.items())
 
     def fit(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
         """
@@ -113,7 +112,9 @@ class SingleLevelLSQ:
             f = f(sample)
 
         G, c = assemble_linear_system(I, sample, f)
-        self.coef_ = np.linalg.solve(G, c)
+        v = np.linalg.solve(G, c)
+
+        self.coef_ = dict(zip(I, v))
         self.cond_ = np.linalg.cond(G)
         self.sample_ = sample
         self.f_vals_ = f

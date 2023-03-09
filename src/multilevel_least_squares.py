@@ -5,9 +5,11 @@ from __future__ import annotations
 import numpy as np
 import time
 
+from collections import defaultdict
 from scipy.special import lambertw
 from typing import Union, Optional
 
+from legendre import legvalnd
 from sampling import sample_optimal_distribution
 from polynomial_spaces import PolySpace
 from least_squares import SingleLevelLSQ
@@ -112,6 +114,13 @@ class MultiLevelLSQ:
             N = self.Ns[self.L - level]
             self.v_print(f"{level:>5} | {m:>{w[0]}} | {n:>{w[1]}} | {N:>{w[2]}} | {runtime:>6.3f}s")
 
+    def combine_coefs(self):
+        coef = defaultdict(float)
+        for d in [p.coef_ for p in self.projectors]:
+            for index, v in d.items():
+                coef[index] += v
+        self.coef_ = dict(coef)
+
     def fit(self, eps: float) -> MultiLevelLSQ:
         start = time.perf_counter()
 
@@ -152,17 +161,18 @@ class MultiLevelLSQ:
             self.projectors.append(projector)
 
             self.log(l, runtime=time.perf_counter() - start_l)
+        self.combine_coefs()
         self.log("end", runtime=time.perf_counter() - start)
 
         return self
 
     def __call__(self, x: np.array) -> np.array:
         try:
-            projectors = self.projectors
+            coef = self.coef_
         except:
             raise ValueError("Model was not fitted yet.")
         else:
-            return sum(p(x) for p in projectors)
+            return sum(v * legvalnd(x, eta) for eta, v in coef.items())
 
     def l2_error(self, x: np.array, y: np.array) -> float:
         return np.sqrt(mse(self(x), y))
