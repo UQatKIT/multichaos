@@ -9,7 +9,7 @@ from typing import Callable, Literal, Union
 from polynomial_spaces import PolySpace
 
 from sampling import sample_optimal_distribution, sample_arcsine
-from legendre import legvalnd, legval_up_to_degree
+from legendre import legval_up_to_degree
 from utils import mse
 
 
@@ -44,11 +44,7 @@ def get_sample(I: IndexSet, N: int, sampling: SamplingMode) -> np.array:
 
     return sample
 
-def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[np.array, np.array]:
-    """
-    Assembles the linear system `Gv=c` for the weighted LSQ
-    problem using Legendre polynomials.
-    """
+def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
     I = np.array(I)
 
     dim = sample.ndim
@@ -72,6 +68,15 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
         norms = norms.prod(axis=1)
     basis_val *= norms.reshape(-1, 1)
 
+    return basis_val
+
+def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[np.array, np.array]:
+    """
+    Assembles the linear system `Gv=c` for the weighted LSQ
+    problem using Legendre polynomials.
+    """
+    basis_val = evaluate_basis(I, sample)
+
     weights = len(I) / (basis_val ** 2).sum(axis=0)
 
     M = basis_val * np.sqrt(weights)
@@ -91,7 +96,10 @@ class SingleLevelLSQ:
         except:
             raise ValueError("Model was not fitted yet.")
         else:
-            return sum(v * legvalnd(x, eta) for eta, v in coef.items())
+            I = self.poly_space.index_set
+            coef = np.array(list(self.coef_.values()))
+            basis = evaluate_basis(I, x)
+            return np.dot(coef, basis)
 
     def fit(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None):
         """
