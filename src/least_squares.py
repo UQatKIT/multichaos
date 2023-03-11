@@ -2,6 +2,7 @@
 Weighted polynomial least squares.
 """
 import numpy as np
+import time
 import warnings
 
 from scipy.special import lambertw
@@ -107,6 +108,8 @@ class SingleLevelLSQ:
         onto the polynomial space given by the index set `I` and
         saves the coefficients `v` w.r.t the basis given by `I`.
         """
+        start = time.perf_counter()
+
         I = self.poly_space.index_set
         if sample is None:
             if N is None:
@@ -121,6 +124,8 @@ class SingleLevelLSQ:
 
         G, c = assemble_linear_system(I, sample, f)
         v = np.linalg.solve(G, c)
+
+        self.time_ = time.perf_counter() - start
 
         self.coef_ = dict(zip(I, v))
         self.cond_ = np.linalg.cond(G)
