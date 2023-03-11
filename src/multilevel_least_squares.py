@@ -137,6 +137,7 @@ class MultiLevelLSQ:
             sample = sample_optimal_distribution(I, max(Ns))
 
         self.projectors = []
+        self.times = []
         for l in range(L + 1):
             start_l = time.perf_counter()
 
@@ -160,7 +161,9 @@ class MultiLevelLSQ:
 
             self.projectors.append(projector)
 
-            self.log(l, runtime=time.perf_counter() - start_l)
+            self.times.append(time.perf_counter() - start_l)
+            self.log(l, runtime=self.times[l])
+
         self.combine_coefs()
         self.log("end", runtime=time.perf_counter() - start)
 
