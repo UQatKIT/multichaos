@@ -3,9 +3,10 @@ Weighted polynomial least squares.
 """
 import numpy as np
 import time
-import warnings
 
 from scipy.special import lambertw
+from scipy.sparse.linalg import cg
+from scipy.sparse.linalg import LinearOperator
 from typing import Callable, Literal, Union
 from polynomial_spaces import PolySpace
 
@@ -80,11 +81,10 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
 
     weights = len(I) / (basis_val ** 2).sum(axis=0)
 
-    M = basis_val * np.sqrt(weights)
-    G = np.dot(M, M.T) / len(sample)
+    M = basis_val * np.sqrt(weights) / np.sqrt(len(sample))
     c = np.mean(weights * f * basis_val, axis=1)
 
-    return G, c
+    return M, c
 
 class SingleLevelLSQ:
     def __init__(self, poly_space: PolySpace, sampling: SamplingMode) -> None:
@@ -122,18 +122,17 @@ class SingleLevelLSQ:
         if isinstance(f, Callable):
             f = f(sample)
 
-        G, c = assemble_linear_system(I, sample, f)
-        v = np.linalg.solve(G, c)
+        M, c = assemble_linear_system(I, sample, f)
+
+        m = M.shape[0]
+        G = LinearOperator((m, m), matvec=lambda x: np.dot(M, np.dot(M.T, x)))
+        v = cg(G, c)[0]
 
         self.time_ = time.perf_counter() - start
 
         self.coef_ = dict(zip(I, v))
-        self.cond_ = np.linalg.cond(G)
         self.sample_ = sample
         self.f_vals_ = f
-
-        if self.cond_ > 3:
-            warnings.warn('Ill conditioned Gramian matrix encountered (cond(G) > 3)')
 
         return self
 
