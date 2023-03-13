@@ -79,7 +79,7 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
     """
     basis_val = evaluate_basis(I, sample)
 
-    weights = len(I) / (basis_val ** 2).sum(axis=0)
+    weights = len(I) / np.einsum('ij,ij->j', basis_val, basis_val)
 
     M = basis_val * np.sqrt(weights) / np.sqrt(len(sample))
     c = np.mean(weights * f * basis_val, axis=1)
