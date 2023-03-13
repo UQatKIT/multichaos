@@ -142,7 +142,7 @@ class AdaptiveLSQ:
 
             under_consideration = get_power_of_two_index_set(k)
             self.gains[nbr] = np.linalg.norm(
-                [v for eta, v in zip(V, model.coef_) if eta in under_consideration]
+                [v for eta, v in model.coef_.items() if eta in under_consideration]
             )
             gain += self.gains[nbr]
         gain /= len(neighbours)
