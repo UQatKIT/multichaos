@@ -222,7 +222,10 @@ class AdaptiveLSQ:
         self.gains = {}
         self.ratios = {}
 
+        self.construct_time = []
         for _ in range(self.n_steps):
+            s = time.perf_counter()
+
             ratios = {}
             for eta in A:
                 gain = self.estimate_gain(eta)
@@ -238,6 +241,8 @@ class AdaptiveLSQ:
             for nbr in self.get_upper_neighbours(best_eta):
                 if self.is_downward_closed(self.I + [nbr]):
                     A.append(nbr)
+
+            self.construct_time.append(time.perf_counter() - s)
 
         return
 
