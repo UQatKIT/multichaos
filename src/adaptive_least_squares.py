@@ -240,22 +240,25 @@ class AdaptiveLSQ:
                 coef[index] += v
         self.coef_ = dict(coef)
 
-    def fit(self, n_steps: int) -> AdaptiveLSQ:
+    def fit(self, n_steps: int=None, I: IndexSet=None) -> AdaptiveLSQ:
             start = time.perf_counter()
 
             self.n_steps = n_steps
 
-            self.log(level="start_constructing")
-            s = time.perf_counter()
-            self.construct_multi_index_set()
-            self.time_constructing = time.perf_counter() - s
-            self.log(level="end_constructing", runtime=self.time_constructing)
+            if I is None:
+                self.log(level="start_constructing")
+                s = time.perf_counter()
+                self.construct_multi_index_set()
+                self.time_constructing = time.perf_counter() - s
+                self.log(level="end_constructing", runtime=self.time_constructing)
+            else:
+                self.I = I
 
             self.L = max(eta[-1] for eta in self.I)
 
             self.Vk = [self.polynomial_space_V(self.I, l) for l in range(self.L + 1)]
-            self.mk = [len(V) for V in self.Vk]
-            self.nl = [l for l in range(self.L + 1)]
+            self.mk = list(map(len, self.Vk))
+            self.nl = list(map(self.n, range(self.L + 1)))
             self.Ns = [
                 int((1. - self.reduce_sample_by) * get_optimal_sample_size(V, sampling="arcsine")) for V in self.Vk
             ]
