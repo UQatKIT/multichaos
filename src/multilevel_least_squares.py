@@ -81,8 +81,8 @@ class MultiLevelLSQ:
         r = 1
         kappa = (1 - np.log(2)) / (1 + r) / 2
         aux = mk ** self.sigma
-        Ns = np.ceil(np.real(np.exp(-lambertw(-kappa / aux, k=-1))))
-        Ns = ((1 - self.reduce_sample_by) * Ns).astype(int)
+        Ns = np.real(np.exp(-lambertw(-kappa / aux, k=-1)))
+        Ns = np.ceil(((1 - self.reduce_sample_by) * Ns)).astype(int)
         return Ns
 
     def work(self) -> float:
