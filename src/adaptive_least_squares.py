@@ -27,8 +27,16 @@ class AdaptiveLSQ:
         self.response = problem.get("response", None)
         self.dim = problem.get("dim", None)
 
+        self.C_n = params.get("C_n", 1.)
+        self.n_pow = params.get("n_pow", 2.)
+
         self.reduce_sample_by = params.get("reduce_sample_by", .0)
         self.verbose = params.get("verbose", True)
+
+        self.reparametrization()
+
+    def reparametrization(self):
+        self.n = lambda l: int(self.C_n * np.ceil(self.n_pow ** l))
 
     def is_downward_closed(self, I: IndexSet) -> bool:
         """Checks if the given index set `I` is downward closed."""
@@ -152,7 +160,7 @@ class AdaptiveLSQ:
 
             if N > len(evals):
                 s = time.perf_counter()
-                new_evals = self.response(l + 1)(self.sample[len(evals):N])
+                new_evals = self.response(self.n(l))(self.sample[len(evals):N])
                 e = time.perf_counter()
 
                 self.f_vals[l] = np.hstack((evals, new_evals))
@@ -183,7 +191,7 @@ class AdaptiveLSQ:
 
         if l not in self.f_times:
             s = time.perf_counter()
-            new_evals = self.response(l + 1)(self.sample[0].reshape(1, -1))
+            new_evals = self.response(self.n(l))(self.sample[0].reshape(1, -1))
             e = time.perf_counter()
 
             self.f_vals[l] = new_evals
@@ -280,7 +288,7 @@ class AdaptiveLSQ:
                 for l_ in [l, l - 1] if l > 0 else [l]:
                     evals = self.f_vals.get(l_, np.empty(0))
                     if N > evals.size:
-                        new_evals = self.response(l_ + 1)(self.sample[evals.size:N])
+                        new_evals = self.response(self.n(l_))(self.sample[evals.size:N])
                         self.f_vals[l_] = np.hstack((evals, new_evals))
 
                 sample = self.sample[:N]
