@@ -108,12 +108,12 @@ class AdaptiveLSQ:
         return V
 
     def log(self, level: Union[str, int], runtime: Optional[float]=None):
+        self.v_print = print if self.verbose else lambda *a, **k: None
         if level == "start_constructing":
-            print("Constructing multi-index set ... ", end="", flush=True)
+            self.v_print("Constructing multi-index set ... ", end="", flush=True)
         elif level == "end_constructing":
-            print(f"Done in {runtime:.3f}s")
+            self.v_print(f"Done in {runtime:.3f}s")
         elif level == "start":
-            self.v_print = print if self.verbose else lambda *a, **k: None
             w = [max(map(len, map(str, arr))) for arr in [self.mk, self.nl, self.Ns]]
             w[0] = max(w[0], len("dim(V)"))
             self.v_print(
