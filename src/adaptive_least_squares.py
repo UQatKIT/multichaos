@@ -128,7 +128,7 @@ class AdaptiveLSQ:
             w = self.print_widths
             m = self.mk[level]
             n = self.nl[level]
-            N = self.Ns[self.L - level]
+            N = self.Ns[level]
             self.v_print(f"{level:>5} | {m:>{w[0]}} | {n:>{w[1]}} | {N:>{w[2]}} | {runtime:>6.3f}s")
 
     def estimate_gain(self, index):
