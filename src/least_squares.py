@@ -5,8 +5,6 @@ import numpy as np
 import time
 
 from scipy.special import lambertw
-from scipy.sparse.linalg import cg
-from scipy.sparse.linalg import LinearOperator
 from typing import Callable, Literal, Union
 from polynomial_spaces import PolySpace
 
@@ -84,7 +82,9 @@ def assemble_linear_system(I: IndexSet, sample: np.array, f: np.array) -> tuple[
     M = basis_val * np.sqrt(weights) / np.sqrt(len(sample))
     c = np.mean(weights * f * basis_val, axis=1)
 
-    return M, c
+    G = np.dot(M, M.T)
+
+    return G, c
 
 class SingleLevelLSQ:
     def __init__(self, poly_space: PolySpace, sampling: SamplingMode) -> None:
@@ -122,11 +122,9 @@ class SingleLevelLSQ:
         if isinstance(f, Callable):
             f = f(sample)
 
-        M, c = assemble_linear_system(I, sample, f)
+        G, c = assemble_linear_system(I, sample, f)
 
-        m = M.shape[0]
-        G = LinearOperator((m, m), matvec=lambda x: np.dot(M, np.dot(M.T, x)))
-        v = cg(G, c)[0]
+        v = np.linalg.solve(G, c)
 
         self.time_ = time.perf_counter() - start
 
