@@ -279,7 +279,7 @@ class AdaptiveLSQ:
             self.log(level="start")
 
             self.projectors = []
-            self.times = []
+            self.fit_times = []
             for l in range(self.L + 1):
                 start_l = time.perf_counter()
 
@@ -304,8 +304,8 @@ class AdaptiveLSQ:
                 projector = SingleLevelLSQ(dummy_space, sampling="arcsine").fit(f_, sample=sample.squeeze())
                 self.projectors.append(projector)
 
-                self.times.append(time.perf_counter() - start_l)
-                self.log(l, runtime=self.times[l])
+                self.fit_times.append(time.perf_counter() - start_l)
+                self.log(l, runtime=self.fit_times[l])
 
             self.combine_coefs()
             self.log("end", runtime=time.perf_counter() - start)
