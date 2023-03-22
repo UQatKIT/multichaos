@@ -49,7 +49,7 @@ def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
 
     dim = sample.ndim
     if dim == 1:
-        basis_val = legval_up_to_degree(np.max(I), sample)
+        basis_val = legval_up_to_degree(np.max(I), sample)[I]
     else:
         max_idxs = np.max(I, axis=0)
         basis_val_uni = {}
