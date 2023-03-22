@@ -3,6 +3,8 @@ Sampling methods for the weighted polynomial least squares projection.
 """
 import numpy as np
 
+from collections import defaultdict
+
 from scipy.special import eval_sh_legendre
 from typing import Union
 
@@ -59,14 +61,11 @@ def sample_optimal_distribution(I: IndexSet, size: int) -> np.array:
     choices = np.random.randint(len(I), size=size)
     count_choices = np.bincount(choices)
     
-    count_degrees = {}
+    count_degrees = defaultdict(int)
     for eta, count in zip(I, count_choices):
         for k in eta:
-            if k in count_degrees:
-                count_degrees[k] += count
-            else:
-                count_degrees[k] = count
-    
+            count_degrees[k] += count
+
     samples_uni = {}
     for k, count in count_degrees.items():
         samples_uni[k] = rejection_sampling(k, count)
