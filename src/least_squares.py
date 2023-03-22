@@ -9,7 +9,7 @@ from typing import Callable, Literal, Union
 from polynomial_spaces import PolySpace
 
 from sampling import sample_optimal_distribution, sample_arcsine
-from legendre import legval_up_to_degree
+from legendre import legval
 from utils import mse
 
 
@@ -49,12 +49,12 @@ def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
 
     dim = sample.ndim
     if dim == 1:
-        basis_val = legval_up_to_degree(np.max(I), sample)[I]
+        basis_val = legval(np.max(I), sample)[I]
     else:
         max_idxs = np.max(I, axis=0)
         basis_val_uni = {}
         for j in range(dim):
-            basis_val_uni[j] = legval_up_to_degree(max_idxs[j], sample[:, j])
+            basis_val_uni[j] = legval(max_idxs[j], sample[:, j])
 
         basis_val = np.zeros((len(I), len(sample)))
         for i, eta in enumerate(I):
