@@ -42,13 +42,11 @@ def sample_optimal_distribution_uni(I: IndexSet, size: int) -> np.array:
     choices = np.random.choice(I, size)
     count_choices = np.bincount(choices)
     
-    samples = np.zeros(size)
+    samples = []
     for n, count in enumerate(count_choices):
-        sample = rejection_sampling(n, count)
-        start, end = count_choices[:n].sum(), count_choices[:n+1].sum()
-        samples[start:end] = sample
-    
-    return samples
+        samples.append(rejection_sampling(n, count))
+
+    return np.hstack(samples)
 
 def sample_optimal_distribution(I: IndexSet, size: int) -> np.array:
     """
@@ -69,14 +67,13 @@ def sample_optimal_distribution(I: IndexSet, size: int) -> np.array:
     samples_uni = {}
     for k, count in count_degrees.items():
         samples_uni[k] = rejection_sampling(k, count)
-    
+
+    ind = np.insert(count_choices.cumsum(), 0, 0)
+
     samples = np.zeros((size, d))
-    for i, count in enumerate(count_choices):
-        if count == 0:
-            continue
-        start, end = count_choices[:i].sum(), count_choices[:i+1].sum()
+    for i in np.nonzero(count_choices)[0]:
         for j, k in enumerate(I[i]):
-            samples[start:end, j] = samples_uni[k][-count_choices[i]:]
+            samples[ind[i]:ind[i + 1], j] = samples_uni[k][-count_choices[i]:]
             samples_uni[k] = np.delete(samples_uni[k], range(-count_choices[i], 0))
 
     return samples
