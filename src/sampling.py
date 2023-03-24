@@ -6,10 +6,12 @@ import numpy as np
 from collections import defaultdict
 
 from scipy.special import eval_sh_legendre
-from typing import Union
+from scipy.special import lambertw
+from typing import Literal, Union
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
+SamplingMode = Literal["optimal", "arcsine"]
 
 
 def arcsine(x: np.array) -> np.array:
@@ -77,3 +79,23 @@ def sample_optimal_distribution(I: IndexSet, size: int) -> np.array:
             samples_uni[k] = np.delete(samples_uni[k], range(-count_choices[i], 0))
 
     return samples
+
+def optimal_sample_size(I: IndexSet, sampling: SamplingMode, r: float=1., reduce: float=0.) -> int:
+    """
+    Returns the sample size that satisfies the
+    optimality constraint for a stable projection.
+    """
+    if sampling == "optimal":
+        aux = len(I)
+    elif sampling == "arcsine":
+        C = 1.0
+        d = len(I[0]) if len(I) else 1.
+        aux = C ** d * len(I)
+    else:
+        raise ValueError(f"Unknown sampling mode '{sampling}'.")
+
+    kappa = (1 - np.log(2)) / (1 + r) / 2
+    N = np.ceil(np.real(np.exp(-lambertw(- kappa / aux, k=-1))))
+    N *= 1 - reduce
+
+    return int(N)
