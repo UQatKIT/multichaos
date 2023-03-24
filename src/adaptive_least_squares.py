@@ -9,15 +9,16 @@ from collections import defaultdict
 from itertools import product
 from typing import Optional, Union
 
-from polynomial_spaces import PolySpace
 from sampling import sample_arcsine
-from least_squares import get_optimal_sample_size
-from least_squares import evaluate_basis
+from sampling import optimal_sample_size
+from legendre import evaluate_basis
 from least_squares import SingleLevelLSQ
+from polynomial_spaces import PolySpace
 from utils import mse
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
+
 
 class AdaptiveLSQ:
     def __init__(self, problem: dict, params: dict):
@@ -147,8 +148,7 @@ class AdaptiveLSQ:
             k, l = self.separate_index(nbr)
 
             V = self.polynomial_space_V(self.I, l)
-            N = get_optimal_sample_size(V, sampling="arcsine")
-            N = int((1 - self.reduce_sample_by) * N)
+            N = optimal_sample_size(V, sampling="arcsine", reduce=self.reduce_sample_by)
 
             if N > len(self.sample):
                 self.sample = np.vstack(
@@ -171,7 +171,10 @@ class AdaptiveLSQ:
             space = PolySpace("TD", m=1, d=1)
             space.index_set = V
 
-            model = SingleLevelLSQ(space, sampling="arcsine").fit(f, sample=sample.squeeze())
+            model = SingleLevelLSQ({
+                "poly_space": space,
+                "sampling": "arcsine",
+            }).fit(f, sample=sample.squeeze())
 
             under_consideration = self.get_power_of_two_index_set(k)
             self.gains[nbr] = np.linalg.norm(
@@ -200,8 +203,8 @@ class AdaptiveLSQ:
         times = self.sum_times(self.f_times)
 
         V = self.polynomial_space_V(self.I, l)
-        n_add = get_optimal_sample_size(V + self.get_power_of_two_index_set(k), sampling="arcsine")
-        n =  get_optimal_sample_size(V, sampling="arcsine")
+        n_add = optimal_sample_size(V + self.get_power_of_two_index_set(k), sampling="arcsine")
+        n =  optimal_sample_size(V, sampling="arcsine")
 
         work = times[l] + times[l - 1] if l > 0 else times[l]
         work *= n_add - n
@@ -273,7 +276,7 @@ class AdaptiveLSQ:
             self.mk = list(map(len, self.Vk))
             self.nl = list(map(self.n, range(self.L + 1)))
             self.Ns = [
-                int((1. - self.reduce_sample_by) * get_optimal_sample_size(V, sampling="arcsine")) for V in self.Vk
+                optimal_sample_size(V, sampling="arcsine", reduce=self.reduce_sample_by) for V in self.Vk
             ]
 
             self.log(level="start")
@@ -301,7 +304,10 @@ class AdaptiveLSQ:
                 dummy_space = PolySpace("TP", m=1, d=1)
                 dummy_space.index_set = V
 
-                projector = SingleLevelLSQ(dummy_space, sampling="arcsine").fit(f_, sample=sample.squeeze())
+                projector = SingleLevelLSQ({
+                    "poly_space": dummy_space,
+                    "sampling": "arcsine",
+                }).fit(f_, sample=sample.squeeze())
                 self.projectors.append(projector)
 
                 self.fit_times.append(time.perf_counter() - start_l)

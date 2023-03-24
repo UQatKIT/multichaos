@@ -10,8 +10,8 @@ from scipy.special import lambertw
 from typing import Union, Optional
 
 from sampling import sample_optimal_distribution
+from legendre import evaluate_basis
 from polynomial_spaces import PolySpace
-from least_squares import evaluate_basis
 from least_squares import SingleLevelLSQ
 from utils import mse
 
@@ -146,7 +146,7 @@ class MultiLevelLSQ:
             N = Ns[L - l]
 
             V = PolySpace(self.poly_space, m, self.dim)
-            projector = SingleLevelLSQ(V, sampling="optimal")
+            projector = SingleLevelLSQ({"poly_space": V})
             if not self.reuse_sample:
                 f_l = self.response(n)
                 f_l_ = self.response(nl[l - 1]) if l > 0 else lambda _: 0
