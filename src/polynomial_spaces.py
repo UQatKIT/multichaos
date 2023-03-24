@@ -26,7 +26,6 @@ class PolySpace:
         self.d = d
 
         self.set_index_set()
-        self.dim = len(self.index_set)
 
     def set_index_set(self):
         if self.d == 1:
@@ -46,6 +45,9 @@ class PolySpace:
             I = I[ix]
 
         self.index_set = list(zip(*I.T))
+
+    def dim(self):
+        return len(self.index_set)
 
     def plot_index_set(self):
         I = np.array(self.index_set)
