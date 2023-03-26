@@ -15,7 +15,7 @@ from utils import mse
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
-SamplingMode = Literal["optimal", "arcsine", "uniform"]
+SamplingMode = Literal["optimal", "arcsine"]
 
 
 class SingleLevelLSQ:
