@@ -88,6 +88,8 @@ class SingleLevelLSQ:
 
         G, c = self.assemble_linear_system()
 
+        self.G = G
+
         v = np.linalg.solve(G, c)
         self.coef_ = dict(zip(I, v))
 
