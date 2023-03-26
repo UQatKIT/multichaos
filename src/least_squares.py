@@ -59,7 +59,7 @@ class SingleLevelLSQ:
             m = self.poly_space.dim()
             weights = m / np.einsum('ij,ij->j', basis_val, basis_val)
         else:
-            weights = np.ones(basis_val.shape[0]) # ???
+            weights = np.ones(basis_val.shape[1])
 
         M = basis_val * np.sqrt(weights) / np.sqrt(len(self.sample_))
         c = np.mean(weights * self.f_vals_ * basis_val, axis=1)
