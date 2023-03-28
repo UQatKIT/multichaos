@@ -44,8 +44,9 @@ class SingleLevelLSQ:
         if self.sampling == "optimal":
             sample = sample_optimal_distribution(I, N)
         elif self.sampling == "arcsine":
-            sample = sample_arcsine((N, len(I[0])))
-        return sample
+            d = 1 if isinstance(I[0], int) else len(I[0])
+            sample = sample_arcsine((N, d))
+        return sample.squeeze()
 
     def assemble_linear_system(self) -> tuple[np.array, np.array]:
         """

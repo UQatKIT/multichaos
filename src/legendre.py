@@ -27,7 +27,7 @@ def legval(n: int, sample: np.array) -> np.array:
 def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
     I = np.array(I)
 
-    dim = sample.ndim
+    dim = sample.shape[-1]
     if dim == 1:
         basis_val = legval(np.max(I), sample)[I]
     else:
