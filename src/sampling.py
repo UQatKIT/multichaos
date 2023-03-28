@@ -54,7 +54,7 @@ def sample_optimal_distribution(I: IndexSet, size: int) -> np.array:
     """
     Samples from the optimal distribution.
     """
-    d = 1 if isinstance(I[0], int) else len(I[0])
+    d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
     if d == 1:
         return sample_optimal_distribution_uni(I, size)
     

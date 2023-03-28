@@ -45,7 +45,7 @@ class SingleLevelLSQ:
         if self.sampling == "optimal":
             sample = sample_optimal_distribution(I, N)
         elif self.sampling == "arcsine":
-            d = 1 if isinstance(I[0], int) else len(I[0])
+            d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
             sample = sample_arcsine((N, d))
         return sample.squeeze()
 

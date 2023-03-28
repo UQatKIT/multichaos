@@ -27,13 +27,13 @@ def legval(n: int, sample: np.array) -> np.array:
 def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
     I = np.array(I)
 
-    dim = sample.shape[-1]
-    if dim == 1:
+    d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
+    if d == 1:
         basis_val = legval(np.max(I), sample)[I]
     else:
         max_idxs = np.max(I, axis=0)
         basis_val_uni = {}
-        for j in range(dim):
+        for j in range(d):
             basis_val_uni[j] = legval(max_idxs[j], sample[:, j])
 
         basis_val = np.zeros((len(I), len(sample)))
@@ -44,7 +44,7 @@ def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
             basis_val[i] = prod
 
     norms = np.sqrt((2 * I + 1))
-    if dim > 1:
+    if d > 1:
         norms = norms.prod(axis=1)
     basis_val *= norms.reshape(-1, 1)
 
