@@ -9,6 +9,7 @@ from typing import Callable, Literal, Union
 
 from sampling import sample_optimal_distribution
 from sampling import sample_arcsine
+from sampling import arcsine
 from sampling import optimal_sample_size
 from legendre import evaluate_basis
 from utils import mse
@@ -57,8 +58,11 @@ class SingleLevelLSQ:
         basis_val = evaluate_basis(I, self.sample_)
 
         if self.weighted:
-            m = self.poly_space.dim()
-            weights = m / np.einsum('ij,ij->j', basis_val, basis_val)
+            if self.sampling == "optimal":
+                m = self.poly_space.dim()
+                weights = m / np.einsum('ij,ij->j', basis_val, basis_val)
+            elif self.sampling == "arcsine":
+                weights = 1. / arcsine(self.sample_)
         else:
             weights = np.ones(basis_val.shape[1])
 
