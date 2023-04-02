@@ -26,6 +26,8 @@ def legval(n: int, sample: np.array) -> np.array:
 
 def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
     I = np.array(I)
+    if I.shape[-1] == 1:
+        I = I.squeeze(-1)
 
     d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
     if d == 1:
