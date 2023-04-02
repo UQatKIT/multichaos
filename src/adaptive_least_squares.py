@@ -8,6 +8,7 @@ import time
 from collections import defaultdict
 from itertools import product
 from typing import Optional, Union
+from tqdm.notebook import tqdm
 
 from sampling import sample_arcsine
 from sampling import optimal_sample_size
@@ -226,7 +227,7 @@ class AdaptiveLSQ:
         self.ratios = {}
 
         self.construct_time = []
-        for _ in range(self.n_steps):
+        for _ in tqdm(range(self.n_steps)):
             s = time.perf_counter()
 
             ratios = {}
