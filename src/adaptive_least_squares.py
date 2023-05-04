@@ -12,7 +12,7 @@ from tqdm.notebook import tqdm
 
 from sampling import sample_arcsine
 from sampling import optimal_sample_size
-from legendre import evaluate_basis
+from legendre import call
 from least_squares import SingleLevelLSQ
 from polynomial_spaces import PolySpace
 from utils import mse
@@ -321,14 +321,9 @@ class AdaptiveLSQ:
 
     def __call__(self, x: np.array) -> np.array:
         try:
-            coef = self.coef_
+            return call(self.coef_, x)
         except:
             raise ValueError("Model was not fitted yet.")
-        else:
-            I = list(self.coef_.keys())
-            coef = np.array(list(self.coef_.values()))
-            basis = evaluate_basis(I, x)
-            return np.dot(coef, basis)
 
     def l2_error(self, x: np.array, y: np.array) -> float:
         return np.sqrt(mse(self(x), y))

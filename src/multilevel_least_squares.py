@@ -10,7 +10,7 @@ from scipy.special import lambertw
 from typing import Union, Optional
 
 from sampling import sample_optimal_distribution
-from legendre import evaluate_basis
+from legendre import call
 from polynomial_spaces import PolySpace
 from least_squares import SingleLevelLSQ
 from utils import mse
@@ -171,14 +171,9 @@ class MultiLevelLSQ:
 
     def __call__(self, x: np.array) -> np.array:
         try:
-            coef = self.coef_
+            return call(self.coef_, x)
         except:
             raise ValueError("Model was not fitted yet.")
-        else:
-            I = list(self.coef_.keys())
-            coef = np.array(list(self.coef_.values()))
-            basis = evaluate_basis(I, x)
-            return np.dot(coef, basis)
 
     def l2_error(self, x: np.array, y: np.array) -> float:
         return np.sqrt(mse(self(x), y))

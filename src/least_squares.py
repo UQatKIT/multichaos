@@ -12,6 +12,7 @@ from sampling import sample_arcsine
 from sampling import arcsine
 from sampling import optimal_sample_size
 from legendre import evaluate_basis
+from legendre import call
 from utils import mse
 
 
@@ -31,14 +32,9 @@ class SingleLevelLSQ:
 
     def __call__(self, x: np.array) -> np.array:
         try:
-            coef = self.coef_
+            return call(self.coef_, x)
         except:
             raise ValueError("Model was not fitted yet.")
-        else:
-            I = self.poly_space.index_set
-            coef = np.array(list(self.coef_.values()))
-            basis = evaluate_basis(I, x)
-            return np.dot(coef, basis)
 
     def get_sample(self, N: int) -> np.array:
         I = self.poly_space.index_set
