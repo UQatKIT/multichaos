@@ -3,6 +3,9 @@ Methods for constructing basis and evaluation of Legendre polynomials.
 """
 import numpy as np
 
+from numpy.polynomial.legendre import legder
+from numpy.polynomial.legendre import legint
+
 from typing import Union
 
 
@@ -111,3 +114,44 @@ def call(coef: dict, sample: np.array) -> np.array:
             out += np.dot(c[-rem:], basis_val)
 
     return out
+
+def transform_coefs(coef: dict) -> np.array:
+    shape = np.array(list(coef.keys())).max(axis=0)
+    c = np.zeros(shape + 1)
+
+    for index, value in coef.items():
+        c[index] = value
+
+    return c
+
+def deriv(coef: dict, sample: np.array, axis: int) -> np.array:
+    c = transform_coefs(coef)
+
+    I = np.array([ix for ix, _ in np.ndenumerate(c)])
+    norm = np.sqrt(2 * I + 1).prod(axis=1)
+    c *= norm.reshape(c.shape)
+    new_c = legder(c, scl=2, axis=axis)
+
+    I = [ix for ix, _ in np.ndenumerate(new_c)]
+    norm = np.sqrt(2 * np.array(I) + 1).prod(axis=1)
+    new_c = new_c.reshape(-1) / norm
+
+    new_coef = dict(zip(I, new_c))
+
+    return call(new_coef, sample)
+
+def integ(coef: dict, sample: np.array, axis: int) -> np.array:
+    c = transform_coefs(coef)
+
+    I = np.array([ix for ix, _ in np.ndenumerate(c)])
+    norm = np.sqrt(2 * I + 1).prod(axis=1)
+    c *= norm.reshape(c.shape)
+    new_c = legint(c, scl=.5, axis=axis, lbnd=-1)
+
+    I = [ix for ix, _ in np.ndenumerate(new_c)]
+    norm = np.sqrt(2 * np.array(I) + 1).prod(axis=1)
+    new_c = new_c.reshape(-1) / norm
+
+    new_coef = dict(zip(I, new_c))
+
+    return call(new_coef, sample)
