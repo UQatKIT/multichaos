@@ -4,8 +4,8 @@ import numpy as np
 
 from typing import Union
 
-from src.legendre import legvalnd
-from src.polynomial_spaces import index_set
+from src.legendre import evaluate_basis
+from src.polynomial_spaces import PolySpace
 from src.sampling import sample_arcsine
 from src.sampling import sample_optimal_distribution
 from src.sampling import arcsine
@@ -13,10 +13,10 @@ from src.sampling import arcsine
 
 IndexSet = list[Union[int, tuple[int, ...]]]
 
-dim = 2
+d = 2
 m = 10
-I = index_set("TD", m, dim)
-size = (100_000, dim)
+I = PolySpace("TD", m, d).index_set
+size = (100_000, 2)
 
 samples = [
     sample_arcsine(size),
@@ -31,7 +31,7 @@ def optimal_density(I: IndexSet, x: np.array) -> np.array:
     """
     Returns the optimal density function defined by `I` evaluated in `x`.
     """
-    return sum(legvalnd(x, eta) ** 2 for eta in I) / len(I)
+    return (evaluate_basis(I, x) ** 2).sum(axis=0) / len(I)
 
 @pytest.mark.parametrize("sample", samples)
 def test_size(sample):
