@@ -66,7 +66,7 @@ def call(coef: dict, sample: np.array) -> np.array:
     d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
     if d == 1:
         basis_val = legval(np.max(I), sample)[I]
-        norms = np.sqrt(2 * I_ + 1).reshape(-1, 1)
+        norms = np.sqrt(2 * I + 1).reshape(-1, 1)
         basis_val *= norms
         out = np.dot(c, basis_val)
     else:
