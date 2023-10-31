@@ -12,7 +12,7 @@ from typing import Union
 IndexSet = list[Union[int, tuple[int, ...]]]
 
 
-def legval(n: int, sample: np.array) -> np.array:
+def legval(n: int, sample: np.array, domain: tuple) -> np.array:
     """
     Evaluates the first `n + 1` shifted Legendre polynomials in the given sample.
     """
@@ -20,26 +20,29 @@ def legval(n: int, sample: np.array) -> np.array:
     y[0] = np.ones_like(sample)
 
     if n > 0:
-        sh_sample = 2 * sample - 1
+        # [a, b] to [-1, 1]
+        a, b = domain
+        sh_sample = 2 * (sample - a) / (b - a) - 1
+
         y[1] = sh_sample
         for i in range(1, n):
             y[i + 1] = ((2 * i + 1) * sh_sample * y[i] - i * y[i - 1]) / (i + 1)
 
     return y
 
-def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
+def evaluate_basis(I: IndexSet, sample: np.array, domain: list[tuple]) -> np.array:
     I = np.array(I)
     if I.shape[-1] == 1:
         I = I.squeeze(-1)
 
     d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
     if d == 1:
-        basis_val = legval(np.max(I), sample)[I]
+        basis_val = legval(np.max(I), sample, domain[0])[I]
     else:
         max_idxs = np.max(I, axis=0)
         basis_val_uni = {}
         for j in range(d):
-            basis_val_uni[j] = legval(max_idxs[j], sample[:, j])
+            basis_val_uni[j] = legval(max_idxs[j], sample[:, j], domain[j])
 
         basis_val = np.zeros((len(I), len(sample)))
         for i, eta in enumerate(I):
@@ -55,7 +58,7 @@ def evaluate_basis(I: IndexSet, sample: np.array) -> np.array:
 
     return basis_val
 
-def call(coef: dict, sample: np.array) -> np.array:
+def call(coef: dict, sample: np.array, domain: list[tuple]) -> np.array:
     I = list(coef.keys())
     c = list(coef.values())
 
@@ -65,7 +68,7 @@ def call(coef: dict, sample: np.array) -> np.array:
 
     d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
     if d == 1:
-        basis_val = legval(np.max(I), sample)[I]
+        basis_val = legval(np.max(I), sample, domain[0])[I]
         norms = np.sqrt(2 * I + 1).reshape(-1, 1)
         basis_val *= norms
         out = np.dot(c, basis_val)
@@ -73,9 +76,9 @@ def call(coef: dict, sample: np.array) -> np.array:
         max_idxs = np.max(I, axis=0)
         basis_val_uni = {}
         for j in range(d):
-            basis_val_uni[j] = legval(max_idxs[j], sample[:, j])
+            basis_val_uni[j] = legval(max_idxs[j], sample[:, j], domain[j])
 
-        # Chosen s.t. each chunks takes up ~ 1GB of memory
+        # Chosen s.t. each chunk takes up ~1GB of memory
         chunk_size = int(10 ** 9 / 8 / len(sample))
         iters = len(I) // chunk_size
         rem = len(I) % chunk_size
@@ -124,7 +127,7 @@ def transform_coefs(coef: dict) -> np.array:
 
     return c
 
-def deriv(coef: dict, sample: np.array, axis: int) -> np.array:
+def deriv(coef: dict, sample: np.array, axis: int, domain: list[tuple]) -> np.array:
     c = transform_coefs(coef)
 
     I = np.array([ix for ix, _ in np.ndenumerate(c)])
@@ -138,9 +141,9 @@ def deriv(coef: dict, sample: np.array, axis: int) -> np.array:
 
     new_coef = dict(zip(I, new_c))
 
-    return call(new_coef, sample)
+    return call(new_coef, sample, domain)
 
-def integ(coef: dict, sample: np.array, axis: int) -> np.array:
+def integ(coef: dict, sample: np.array, axis: int, domain: list[tuple]) -> np.array:
     c = transform_coefs(coef)
 
     I = np.array([ix for ix, _ in np.ndenumerate(c)])
@@ -154,4 +157,4 @@ def integ(coef: dict, sample: np.array, axis: int) -> np.array:
 
     new_coef = dict(zip(I, new_c))
 
-    return call(new_coef, sample)
+    return call(new_coef, sample, domain)

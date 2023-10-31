@@ -41,3 +41,32 @@ def make_array_strictly_increasing(arr: np.array) -> np.array:
         if arr[i-1] >= arr[i]:
             arr[i] = arr[i-1] + 1
     return arr
+
+def unit_to_domain(x: np.array, domain: list[tuple]) -> np.array:
+    """
+    Maps `x` from unit hypercube to the product domain
+    given by the intervals in `domain`.
+    """
+    if x.ndim == 1:
+        x = x.reshape(1, -1)
+
+    a = np.array([a for a, _ in domain])
+    b = np.array([b for _, b in domain])
+
+    x = (b - a) * x + a
+    return x.squeeze()
+
+
+def domain_to_unit(x: np.array, domain: list[tuple]) -> np.array:
+    """
+    Maps `x` from the product domain given by the intervals
+    in `domain` to unit hypercube.
+    """
+    if x.ndim == 1:
+        x = x.reshape(1, -1)
+
+    a = np.array([a for a, _ in domain])
+    b = np.array([b for _, b in domain])
+
+    x_ = (x - a) / (b - a)
+    return x_.squeeze()

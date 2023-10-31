@@ -8,13 +8,15 @@ from collections import defaultdict
 from scipy.special import eval_sh_legendre
 from scipy.special import lambertw
 from typing import Literal, Union
+from utils import domain_to_unit
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
 SamplingMode = Literal["optimal", "arcsine"]
 
 
-def arcsine(x: np.array) -> np.array:
+def arcsine(x: np.array, domain: list[tuple]) -> np.array:
+    x = domain_to_unit(x, domain)
     aux = 1 / np.sqrt(x * (1 - x)) / np.pi
     return aux.prod(axis=1) if len(x.shape) > 1 else aux
 
@@ -31,7 +33,7 @@ def rejection_sampling(n: int, size: int) -> np.array:
 
     while len(samples) < size:
         arcs = sample_arcsine(size)
-        aux = (2 * n + 1) * eval_sh_legendre(n, arcs) ** 2 / 4 / np.e / arcsine(arcs)
+        aux = (2 * n + 1) * eval_sh_legendre(n, arcs) ** 2 / 4 / np.e / arcsine(arcs, [(0, 1)])
         U = np.random.uniform(size=size)
         samples.extend(arcs[U <= aux])
 

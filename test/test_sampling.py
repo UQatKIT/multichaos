@@ -23,7 +23,7 @@ samples = [
     sample_optimal_distribution(I, size[0]),
 ]
 densities = [
-    arcsine,
+    lambda x: arcsine(x, [(0, 1), (0, 1)]),
     lambda x: optimal_density(I, x),
 ]
 
@@ -31,7 +31,8 @@ def optimal_density(I: IndexSet, x: np.array) -> np.array:
     """
     Returns the optimal density function defined by `I` evaluated in `x`.
     """
-    return (evaluate_basis(I, x) ** 2).sum(axis=0) / len(I)
+    domain = [(0, 1), (0, 1)]
+    return (evaluate_basis(I, x, domain) ** 2).sum(axis=0) / len(I)
 
 @pytest.mark.parametrize("sample", samples)
 def test_size(sample):

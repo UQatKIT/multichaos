@@ -16,6 +16,7 @@ from legendre import call
 from least_squares import SingleLevelLSQ
 from polynomial_spaces import PolySpace
 from utils import mse
+from utils import unit_to_domain
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
@@ -27,7 +28,8 @@ class AdaptiveLSQ:
         self.params = params
 
         self.response = problem.get("response", None)
-        self.dim = problem.get("dim", None)
+        self.domain = problem.get("domain", None)
+        self.dim = len(self.domain)
 
         self.C_n = params.get("C_n", 1.)
         self.n_pow = params.get("n_pow", 2.)
@@ -153,7 +155,10 @@ class AdaptiveLSQ:
 
             if N > len(self.sample):
                 self.sample = np.vstack(
-                    (self.sample, sample_arcsine((N - len(self.sample), self.dim)))
+                    (
+                        self.sample,
+                        unit_to_domain(sample_arcsine((N - len(self.sample), self.dim)), self.domain)
+                    )
                 )
 
             evals = self.f_vals.get(l, np.empty(0))
@@ -175,6 +180,7 @@ class AdaptiveLSQ:
             model = SingleLevelLSQ({
                 "poly_space": space,
                 "sampling": "arcsine",
+                "domain": self.domain,
             }).fit(f, sample=sample.squeeze())
 
             under_consideration = self.get_power_of_two_index_set(k)
@@ -292,7 +298,10 @@ class AdaptiveLSQ:
 
                 if N > len(self.sample):
                     self.sample = np.vstack(
-                        (self.sample, sample_arcsine((N - len(self.sample), self.dim)))
+                        (
+                            self.sample,
+                            unit_to_domain(sample_arcsine((N - len(self.sample), self.dim)), self.domain)
+                        )
                     )
                 for l_ in [l, l - 1] if l > 0 else [l]:
                     evals = self.f_vals.get(l_, np.empty(0))
@@ -308,6 +317,7 @@ class AdaptiveLSQ:
                 projector = SingleLevelLSQ({
                     "poly_space": dummy_space,
                     "sampling": "arcsine",
+                    "domain": self.domain,
                 }).fit(f_, sample=sample.squeeze())
                 self.projectors.append(projector)
 
@@ -321,7 +331,7 @@ class AdaptiveLSQ:
 
     def __call__(self, x: np.array) -> np.array:
         try:
-            return call(self.coef_, x)
+            return call(self.coef_, x, self.domain)
         except:
             raise ValueError("Model was not fitted yet.")
 

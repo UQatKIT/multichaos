@@ -14,6 +14,7 @@ from sampling import optimal_sample_size
 from legendre import evaluate_basis
 from legendre import call
 from utils import mse
+from utils import unit_to_domain
 
 
 IndexSet = list[Union[int, tuple[int, ...]]]
@@ -25,6 +26,7 @@ class SingleLevelLSQ:
         self.params = params
 
         self.poly_space = params.get("poly_space", None)
+        self.domain = params.get("domain", None)
         self.sampling = params.get("sampling", "optimal")
         self.weighted = params.get("weighted", True)
         self.reduce_sample_by = params.get("reduce_sample_by", .0)
@@ -32,7 +34,7 @@ class SingleLevelLSQ:
 
     def __call__(self, x: np.array) -> np.array:
         try:
-            return call(self.coef_, x)
+            return call(self.coef_, x, self.domain)
         except:
             raise ValueError("Model was not fitted yet.")
 
@@ -43,6 +45,7 @@ class SingleLevelLSQ:
         elif self.sampling == "arcsine":
             d = 1 if isinstance(I[0], (int, np.int64)) else len(I[0])
             sample = sample_arcsine((N, d))
+        sample = unit_to_domain(sample, self.domain)
         return sample.squeeze()
 
     def assemble_linear_system(self) -> tuple[np.array, np.array]:
@@ -51,14 +54,14 @@ class SingleLevelLSQ:
         problem using Legendre polynomials.
         """
         I = self.poly_space.index_set
-        basis_val = evaluate_basis(I, self.sample_)
+        basis_val = evaluate_basis(I, self.sample_, self.domain)
 
         if self.weighted:
             if self.sampling == "optimal":
                 m = self.poly_space.dim()
                 weights = m / np.einsum('ij,ij->j', basis_val, basis_val)
             elif self.sampling == "arcsine":
-                weights = 1. / arcsine(self.sample_)
+                weights = 1. / arcsine(self.sample_, self.domain)
         else:
             weights = np.ones(basis_val.shape[1])
 

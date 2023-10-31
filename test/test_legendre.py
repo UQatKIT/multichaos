@@ -23,7 +23,8 @@ def test_legendre_orthonormal(I):
         x = cartesian_product(x_, x_)
         dx = (x_[1] - x_[0]) ** 2
 
-    vals = evaluate_basis(I, x)
+    domain = [(0, 1) for _ in range(len(I))]
+    vals = evaluate_basis(I, x, domain)
     matrix = dx * (vals @ vals.T)
 
     assert np.allclose(matrix, np.eye(len(I)), atol=1e-2)

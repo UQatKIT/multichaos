@@ -22,7 +22,10 @@ def I(m):
 def G(I):
     space = PolySpace("TP", m=1, d=2)
     space.index_set = I
-    model = SingleLevelLSQ({"poly_space": space})
+    model = SingleLevelLSQ({
+        "poly_space": space,
+        "domain": [(0, 1), (0, 1)],
+    })
 
     N = optimal_sample_size(I, sampling="optimal")
     sample = sample_optimal_distribution(I, size=N)
@@ -57,7 +60,10 @@ def test_lsq_polynomial_fit(deg, x):
     V = PolySpace("TD", deg, d=2)
     f = lambda x: (x ** deg).sum(axis=1)
 
-    model = SingleLevelLSQ({"poly_space": V}).fit(f)
+    model = SingleLevelLSQ({
+        "poly_space": V,
+        "domain": [(0, 1), (0, 1)]
+    }).fit(f)
     x = np.random.rand(1000, 2)
     err = np.sqrt(((model(x) - f(x)) ** 2).mean())
 

@@ -14,6 +14,7 @@ from legendre import call
 from polynomial_spaces import PolySpace
 from least_squares import SingleLevelLSQ
 from utils import mse
+from utils import unit_to_domain
 
 
 class MultiLevelLSQ:
@@ -27,7 +28,8 @@ class MultiLevelLSQ:
         self.alpha = problem["alpha"]
 
         self.response = problem.get("response", None)
-        self.dim = problem.get("dim", None)
+        self.domain = problem.get("domain", None)
+        self.dim = len(self.domain)
 
         self.reuse_sample = params.get("reuse_sample", False)
         self.reduce_sample_by = params.get("reduce_sample_by", .0)
@@ -135,6 +137,7 @@ class MultiLevelLSQ:
         if self.reuse_sample:
             I = PolySpace(self.poly_space, max(mk), self.dim).index_set
             sample = sample_optimal_distribution(I, max(Ns))
+            sample = unit_to_domain(sample, self.domain)
 
         self.projectors = []
         self.times = []
@@ -146,7 +149,12 @@ class MultiLevelLSQ:
             N = Ns[L - l]
 
             V = PolySpace(self.poly_space, m, self.dim)
-            projector = SingleLevelLSQ({"poly_space": V})
+            projector = SingleLevelLSQ(
+                {
+                    "poly_space": V,
+                    "domain": self.domain,
+                }
+            )
             if not self.reuse_sample:
                 f_l = self.response(n)
                 f_l_ = self.response(nl[l - 1]) if l > 0 else lambda _: 0
@@ -171,7 +179,7 @@ class MultiLevelLSQ:
 
     def __call__(self, x: np.array) -> np.array:
         try:
-            return call(self.coef_, x)
+            return call(self.coef_, x, self.domain)
         except:
             raise ValueError("Model was not fitted yet.")
 
