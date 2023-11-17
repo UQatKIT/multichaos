@@ -6,8 +6,6 @@ from src.sampling import sample_optimal_distribution
 from src.sampling import optimal_sample_size
 from src.polynomial_spaces import PolySpace
 from src.least_squares import SingleLevelLSQ
-# from src.least_squares import assemble_linear_system
-# from src.least_squares import LSQ
 
 
 @pytest.fixture(scope="session")
@@ -19,7 +17,7 @@ def I(m):
     return PolySpace("TD", m, d=2).index_set
 
 @pytest.fixture(scope="session")
-def G(I):
+def M(I):
     space = PolySpace("TP", m=1, d=2)
     space.index_set = I
     model = SingleLevelLSQ({
@@ -33,9 +31,9 @@ def G(I):
 
     model.sample_ = sample
     model.f_vals_ = f
-    G, _ = model.assemble_linear_system()
+    M, _ = model.assemble_linear_system()
 
-    return G
+    return M
 
 @pytest.fixture(scope="session")
 def x():
@@ -47,11 +45,14 @@ def test_get_optimal_sample_size(I, m):
     kappa = (1 - np.log(2)) / (1 + r) / 2
     assert kappa * N / np.log(N) >= m
 
-def test_assemble_linear_system(G, I):
-    assert G.shape == (len(I), len(I))
-    assert np.allclose(G, G.T)
+def test_assemble_linear_system(M, I):
+    N = optimal_sample_size(I, sampling="optimal")
+    assert M.shape == (N, len(I))
 
-def test_system_matrix(G, I):
+def test_system_matrix(M, I):
+    r = 1
+    N = optimal_sample_size(I, sampling="optimal", r=r)
+    G = M.T @ M / N
     assert np.linalg.norm(G - np.eye(len(I)), ord=2) <= .5
     assert np.linalg.cond(G) <= 3.
 

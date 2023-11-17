@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import time
 
+from scipy.sparse.linalg import lsmr
 from typing import Callable, Literal, Union
 
 from sampling import sample_optimal_distribution
@@ -65,12 +66,10 @@ class SingleLevelLSQ:
         else:
             weights = np.ones(basis_val.shape[1])
 
-        M = basis_val * np.sqrt(weights) / np.sqrt(len(self.sample_))
-        c = np.mean(weights * self.f_vals_ * basis_val, axis=1)
+        M = basis_val * np.sqrt(weights)
+        c = np.sqrt(weights) * self.f_vals_
 
-        G = np.dot(M, M.T)
-
-        return G, c
+        return M.T, c
 
     def fit(self, f: Union[Callable, np.array], N: int=None, sample: np.array=None) -> SingleLevelLSQ:
         start = time.perf_counter()
@@ -90,11 +89,11 @@ class SingleLevelLSQ:
         self.sample_ = sample
         self.f_vals_ = f
 
-        G, c = self.assemble_linear_system()
+        M, c = self.assemble_linear_system()
 
-        self.G = G
+        tol = 1e-9
+        v, *_ = lsmr(M, c, atol=tol, btol=tol)
 
-        v = np.linalg.solve(G, c)
         self.coef_ = dict(zip(I, v))
 
         self.time_ = time.perf_counter() - start
