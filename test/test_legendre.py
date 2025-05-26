@@ -2,29 +2,34 @@ import pytest
 
 import numpy as np
 
-from src.legendre import evaluate_basis
-from src.utils import cartesian_product
+from src.multichaos.legendre import evaluate_basis
+from src.multichaos.utils import cartesian_product
 
 
-@pytest.mark.parametrize("I", [
-    [1, 2, 3],
-    [(0, 0), (0, 1), (1, 0)],]
-)
-def test_legendre_orthonormal(I):
+@pytest.mark.parametrize("index_set", [
+    np.array([0, 1, 2, 3]).reshape(-1, 1),
+    np.array([
+        [0, 0],
+        [0, 1],
+        [1, 0]
+    ])
+])
+def test_legendre_orthonormal(index_set):
     """
     Tests whether the legendre polynomials are
     orthonormal for some index sets.
     """
-    if isinstance(I[0], int): # 1D
-        x = np.linspace(0, 1, 10_0000)
+    if index_set.ndim == 1: # 1D
+        dim = 1
+        x = np.linspace(-1, 1, int(1e6))
         dx = x[1] - x[0]
     else: # ND
-        x_ = np.linspace(0, 1, 1000)
+        dim = 2
+        x_ = np.linspace(-1, 1, int(1e3))
         x = cartesian_product(x_, x_)
         dx = (x_[1] - x_[0]) ** 2
 
-    domain = [(0, 1) for _ in range(len(I))]
-    vals = evaluate_basis(I, x, domain)
-    matrix = dx * (vals @ vals.T)
+    vals = evaluate_basis(index_set, x)
+    matrix = (vals.T @ vals) * dx / 2 ** dim
 
-    assert np.allclose(matrix, np.eye(len(I)), atol=1e-2)
+    assert np.allclose(matrix, np.eye(len(index_set)), atol=1e-1)

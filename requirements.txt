@@ -1,8 +1,0 @@
-alphashape
-jupyter
-matplotlib
-notebook
-numpy
-pytest
-scipy
-tqdm
