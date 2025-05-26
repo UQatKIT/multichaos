@@ -1,0 +1,3 @@
+# Legendre polynomials
+
+::: multichaos.legendre

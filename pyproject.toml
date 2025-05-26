@@ -1,6 +1,7 @@
 # ====================================== General Configuration =====================================
 [project]
 name = "multichaos"
+requires-python = ">= 3.11"
 version = "1.0.0"
 description = "Multilevel polynomial chaos expansion"
 readme = "README.md"
