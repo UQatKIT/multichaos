@@ -158,11 +158,6 @@ def get_n_response(n: int) -> Callable:
         return q
     return response
 ```
-OR?
-```python
-get_n_response = lambda n: response(omega, n)
-```
-
 
 Now, we can create a `MultiLevelPCE`:
 

@@ -17,11 +17,10 @@ For more information of the underlying theory, please refer to this [paper](http
 
 
 ## Installation
-
+To install, you can `cd` into the multichaos directory and run
 ```
-pip install mlpolychaos
+pip install .
 ```
-
 ## Documentation
 
 #### Usage
