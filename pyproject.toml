@@ -1,16 +1,14 @@
-# ====================================== General Configuration =====================================
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "multichaos"
-requires-python = ">= 3.11"
+requires-python = ">= 3.10"
 version = "1.0.0"
 description = "Multilevel polynomial chaos expansion"
 readme = "README.md"
-license = {text = "GNU AGPLv3"}
-authors = [
-{name = "Stjepan Salatovic", email = "stjepan.salatovic@kit.edu"},
-]
-
-#---------------------------------------------------------------------------------------------------
+authors = [{name = "Stjepan Salatovic", email = "stjepan.salatovic@kit.edu"}]
 dependencies = [
    	"numpy",
    	"openturns",

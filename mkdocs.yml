@@ -6,7 +6,7 @@ docs_dir: docs/
 site_name: Multichaos
 site_author: Stjepan Salatovic
 site_description: Multilevel polynomial chaos expansion
-repo_url: https://github.com/stipesal/mlpolyreg
+repo_url: https://github.com/UQatKIT/multichaos
 repo_name: Multichaos
 
 # -- Material theme configuration ------------------------------------------------------------------
