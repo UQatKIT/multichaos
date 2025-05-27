@@ -3,9 +3,7 @@ run-name: Create docs on Gihub pages
 on:
   push:
     branches:
-      - master 
-
-
+      - master
       - main
 jobs:
   #Build documentation and upload as artifact
