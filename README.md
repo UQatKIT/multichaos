@@ -13,7 +13,7 @@ pip install .
 
 ## Documentation
 
-The [documentation](https://uqatkit.github.io/multichaos/) provides further information regarding usage, theoretical background and API.
+The [documentation](https://uqatkit.github.io/multichaos/) provides further information regarding usage, theoretical background, and API.
 
 ## Citation
 
